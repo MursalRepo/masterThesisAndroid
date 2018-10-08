@@ -11,7 +11,7 @@ public class loginPage extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_login);
 
         logIn = (Button) findViewById(R.id.logIn);
         logIn.setOnClickListener(new View.OnClickListener() {
@@ -20,7 +20,7 @@ public class loginPage extends AppCompatActivity {
                 Intent myIntent = new Intent(loginPage.this, mainView.class);
                 myIntent.putExtra("key", "Mursal"); //Optional parameters
                 loginPage.this.startActivity(myIntent);
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+//                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }
         });
     }
