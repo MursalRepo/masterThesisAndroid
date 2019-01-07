@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@color/colorRed">
+    android:background="@color/colorRed"
+    >
 
     <ImageView
         android:layout_width="match_parent"
@@ -12,7 +13,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginStart="0dp"
         android:layout_marginTop="26dp"
-        android:src="@drawable/fall_icon" />
+        android:src="@drawable/falling_man" />
 
     <TextView
         android:id="@+id/ss_text"
@@ -21,10 +22,23 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="102dp"
-        android:text="FALL DETECTION"
+        android:text="@string/FallDetection"
         android:textColor="@android:color/background_light"
         android:textSize="30sp"
         android:textStyle="bold"
+        android:typeface="sans"
+        app:fontFamily="sans-serif" />
+    <TextView
+        android:id="@+id/ss_miBand"
+        android:layout_width="wrap_content"
+        android:layout_height="82dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="50dp"
+        android:text="@string/MiBand2"
+        android:textColor="@android:color/background_light"
+        android:textSize="20sp"
+        android:textStyle="normal"
         android:typeface="sans"
         app:fontFamily="sans-serif" />
 </RelativeLayout>

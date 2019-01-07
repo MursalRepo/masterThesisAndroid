@@ -2,5 +2,17 @@
     <string name="app_name">Fall detection</string>
     <string name="login">Login</string>
     <string name="loginWith">Login with</string>
+    <string name="Open">Open</string>
+    <string name="Close">Close</string>
+    <string name="FallDetection">Fall Detection</string>
+    <string name="MiBand2">Mi Band 2</string>
+    <string name="discoverTitle">Connect to device</string>
+    <string name="connecting">Connecting &#8230;</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="enableBT">Please enable bluetooth</string>
+    <string name="discovering">Discovering &#8230;</string>
+
+
 
 </resources>

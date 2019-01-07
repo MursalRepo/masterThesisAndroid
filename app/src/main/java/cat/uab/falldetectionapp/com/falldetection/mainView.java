@@ -1,21 +1,24 @@
 package cat.uab.falldetectionapp.com.falldetection;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.design.widget.NavigationView;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -29,16 +32,24 @@ import android.bluetooth.BluetoothGattService;
 
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import cat.uab.falldetectionapp.com.falldetection.service.TransactionBuilder;
-
+import cat.uab.falldetectionapp.com.falldetection.listeners.NotifyListener;
+import cat.uab.falldetectionapp.com.falldetection.model.BatteryInfo;
+import cat.uab.falldetectionapp.com.falldetection.model.UserInfo;
 public class mainView extends AppCompatActivity implements AdapterView.OnItemClickListener {
     Button b_on, b_off, b_list, b_disc;
     ListView list, lvNewDevices, list_paired;
+    TextView status;
     BluetoothAdapter bluetoothAdapter;
+
+    private DrawerLayout dl;
+    private ActionBarDrawerToggle t;
+    private NavigationView nv;
+    private MiBand miband;
     private static final int REQUEST_ENABLE = 0;
     private static final int REQUEST_DISCOVERABLE = 0;
     private static final String TAG = "MainActivity";
@@ -54,7 +65,7 @@ public class mainView extends AppCompatActivity implements AdapterView.OnItemCli
 
     public ArrayList<BluetoothDevice> mBTDevices = new ArrayList<>();
 
-    public DeviceListAdapter mDeviceListAdapter;
+    public DeviceListAdapter mDeviceListAdapter, pairedListAdapter;
 
     // Create a BroadcastReceiver for ACTION_FOUND
     private final BroadcastReceiver mBroadcastReceiver1 = new BroadcastReceiver() {
@@ -180,10 +191,10 @@ public class mainView extends AppCompatActivity implements AdapterView.OnItemCli
     protected void onDestroy() {
         Log.d(TAG, "onDestroy: called.");
         super.onDestroy();
-        unregisterReceiver(mBroadcastReceiver1);
-        unregisterReceiver(mBroadcastReceiver2);
-        unregisterReceiver(mBroadcastReceiver3);
-        unregisterReceiver(mBroadcastReceiver4);
+//        unregisterReceiver(mBroadcastReceiver1);
+//        unregisterReceiver(mBroadcastReceiver2);
+//        unregisterReceiver(mBroadcastReceiver3);
+//        unregisterReceiver(mBroadcastReceiver4);
         //mBluetoothAdapter.cancelDiscovery();
     }
 
@@ -191,10 +202,60 @@ public class mainView extends AppCompatActivity implements AdapterView.OnItemCli
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_view);
-        Intent intent = getIntent();
-        String value = intent.getStringExtra("key"); //if it's a string you stored.
-        //System.out.println("***********"+ value);
-        lvNewDevices = (ListView) findViewById(R.id.list);
+        Intent intent = this.getIntent();
+        miband = new MiBand(this);
+        final BluetoothDevice device = intent.getParcelableExtra("device");
+        if(device != null){
+            status = findViewById(R.id.status);
+            status.setText(R.string.connecting);
+            miband.connect(device, new ActionCallback() {
+                @Override
+                public void onSuccess(Object data) {
+                    if (device.getBondState() == BluetoothDevice.BOND_BONDED){
+                    }else {
+                        device.createBond();
+                    }
+                    setStatus(R.string.connected);
+                    miband.setDisconnectedListener(new NotifyListener() {
+                        @Override
+                        public void onNotify(byte[] data) {
+                            setStatus(R.string.disconnected);
+                        }
+                    });
+                }
+                @Override
+                public void onFail(int errorCode, String msg) {
+                    System.out.println("connect fail, code:" + errorCode + ",mgs:" + msg);
+                }
+            });
+        }
+
+        dl = findViewById(R.id.activity_main);
+        t = new ActionBarDrawerToggle(this, dl,R.string.Open, R.string.Close);
+        dl.addDrawerListener(t);
+        t.syncState();
+        try {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }catch (NullPointerException e){
+            System.out.println(e);
+        }
+        nv = findViewById(R.id.nv);
+        nv.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
+                switch(id)
+                {
+                    case R.id.account:
+                        Toast.makeText(mainView.this, "Developer Info",Toast.LENGTH_SHORT).show();
+                    default:
+                        return true;
+                }
+
+            }
+        });
+
+        lvNewDevices = findViewById(R.id.list_new);
         mBTDevices = new ArrayList<>();
 
         //Broadcasts when bond state changes (ie:pairing)
@@ -209,7 +270,7 @@ public class mainView extends AppCompatActivity implements AdapterView.OnItemCli
         b_list = (Button) findViewById(R.id.b_list);
         b_disc = (Button) findViewById(R.id.b_disc);
 
-        list = (ListView) findViewById(R.id.list);
+        list = (ListView) findViewById(R.id.list_new);
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -272,7 +333,35 @@ public class mainView extends AppCompatActivity implements AdapterView.OnItemCli
             }
         });
 
+        Button DiscoverButton = findViewById(R.id.discoverButton);
+        DiscoverButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            Intent intent = new Intent(mainView.this, DiscoverDevice.class);
+            startActivity(intent);
+            mainView.this.finish();
+            }
+        });
 
+
+    }
+
+    private void setStatus(final int statustext){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                status.setText(statustext);
+            }
+        });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if(t.onOptionsItemSelected(item))
+            return true;
+
+        return super.onOptionsItemSelected(item);
     }
 
     /**
@@ -316,13 +405,15 @@ public class mainView extends AppCompatActivity implements AdapterView.OnItemCli
             mBTDevices.get(i).createBond();
             System.out.println("connected");
         }
+        System.out.println("starting intitialviews");
         initialiseViewsAndComponents();
+        System.out.println("starting callback");
         bluetoothGatt = mBTDevices.get(i).connectGatt(getApplicationContext(), true, miBandGattCallBack);
-        ArrayList<String> pairedDevicesList = new ArrayList<>();
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        for (BluetoothDevice bt: pairedDevices){
-            pairedDevicesList.add(bt.getName());
-        }
+//        ArrayList<String> pairedDevicesList = new ArrayList<>();
+//        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+//        for (BluetoothDevice bt: pairedDevices){
+//            pairedDevicesList.add(bt.getName());
+//        }
     }
     private void handleDeviceInfo(BluetoothGattCharacteristic characteristic) {
         String value = characteristic.getStringValue(0);
@@ -349,8 +440,9 @@ public class mainView extends AppCompatActivity implements AdapterView.OnItemCli
 
     }
     private void authoriseMiBand() {
+        System.out.println("authorizing mi band ....");
         BluetoothGattService service = bluetoothGatt.getService(UUIDs.CUSTOM_SERVICE_FEE1);
-
+        System.out.println(service);
         BluetoothGattCharacteristic characteristic = service.getCharacteristic(UUIDs.CUSTOM_SERVICE_AUTH_CHARACTERISTIC);
         bluetoothGatt.setCharacteristicNotification(characteristic, true);
         for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
@@ -365,19 +457,23 @@ public class mainView extends AppCompatActivity implements AdapterView.OnItemCli
     }
 
     private void initialiseViewsAndComponents() {
+        System.out.println("Initial methods");
         sharedPreferences = getSharedPreferences("MiBandConnectPreferences", Context.MODE_PRIVATE);
         Button get_info = (Button) findViewById(R.id.get_info);
+
         miBandGattCallBack = new BluetoothGattCallback() {
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                System.out.println("new state");
+                System.out.println(newState);
                 switch (newState) {
                     case BluetoothGatt.STATE_DISCONNECTED:
-                        Log.d("Info", "Device disconnected");
+                        System.out.println("Device disconnected");
 
                         break;
                     case BluetoothGatt.STATE_CONNECTED: {
-                        Log.d("Info", "Connected with device");
-                        Log.d("Info", "Discovering services");
+                        System.out.println("Connected with device");
+                        System.out.println("Discovering services");
                         gatt.discoverServices();
                     }
                     break;
@@ -386,15 +482,17 @@ public class mainView extends AppCompatActivity implements AdapterView.OnItemCli
 
             @Override
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-
+                System.out.println("this method called");
                 if (!sharedPreferences.getBoolean("isAuthenticated", false)) {
-                    authoriseMiBand();
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putBoolean("isAuthenticated", true);
                     editor.apply();
+                    authoriseMiBand();
                 } else
                     System.out.println("Already authenticated");
                     //getDeviceInformation();
+                    authoriseMiBand();
+
             }
 
             @Override
@@ -456,6 +554,7 @@ public class mainView extends AppCompatActivity implements AdapterView.OnItemCli
                 batteryTestInfo();
             }
         });
+        System.out.println("djshgd");
     }
     private void getDeviceInformation() {
         variableService = bluetoothGatt.getService(UUIDs.DEVICE_INFORMATION_SERVICE);
