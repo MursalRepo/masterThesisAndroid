@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <item android:id="@+id/real_time_graph"
+        android:icon="@drawable/ic_portrait_black_24dp"
+        android:title="Show real-time graph"/>
     <item android:id="@+id/account"
         android:icon="@drawable/ic_portrait_black_24dp"
         android:title="Info"/>

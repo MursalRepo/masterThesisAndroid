@@ -36,6 +36,7 @@ public class Profile {
     public static final UUID UUID_DESCRIPTOR_UPDATE_NOTIFICATION = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     public static final UUID UUID_NOTIFICATION_HEARTRATE = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb");
+    public static final byte COMMAND_SET__HR_CONTINUOUS = 0x1;
 
     // ========================== 描述部分 end ============================
 

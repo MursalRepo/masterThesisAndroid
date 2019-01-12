@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/x_axix"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="false"
+        android:layout_marginStart="13dp"
+        android:layout_marginLeft="13dp"
+        android:text="X axis _____"
+        android:textColor="#f00" />
+
+    <TextView
+        android:id="@+id/y_axis"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="false"
+        android:layout_marginStart="141dp"
+        android:layout_marginLeft="141dp"
+        android:text="Y axis _____"
+        android:textColor="#67f707" />
+
+    <TextView
+        android:id="@+id/z_axix"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="false"
+        android:layout_marginStart="282dp"
+        android:layout_marginLeft="282dp"
+        android:text="Z axis _____"
+        android:textColor="#1a6aed" />
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/scatterPlot"
+        android:layout_width="match_parent"
+        android:layout_height="230dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="29dp" />
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/scatterPlotBand"
+        android:layout_width="match_parent"
+        android:layout_height="230dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="271dp" />
+</RelativeLayout>

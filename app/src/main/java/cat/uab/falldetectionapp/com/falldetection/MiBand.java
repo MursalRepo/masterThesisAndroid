@@ -11,6 +11,8 @@ import android.content.Context;
 import android.util.Log;
 
 import java.util.Arrays;
+import java.util.Timer;
+
 import cat.uab.falldetectionapp.com.falldetection.listeners.NotifyListener;
 import cat.uab.falldetectionapp.com.falldetection.model.Profile;
 import cat.uab.falldetectionapp.com.falldetection.model.Protocol;
@@ -176,15 +178,11 @@ public class MiBand {
         this.io.startScanHeartRate();
     }
 
-    public void sensorData(final ActionCallback callback) {
+    public void sensorData(Boolean activate_disactivate,  final ActionCallback callback) {
         ActionCallback ioCallback = new ActionCallback() {
             @Override
             public void onSuccess(Object data) {
                 System.out.println(data);
-                BluetoothGattCharacteristic characteristic = (BluetoothGattCharacteristic) data;
-                System.out.println("sensor data " + Arrays.toString(characteristic.getValue()));
-                System.out.println(characteristic.getValue().length);
-                callback.onSuccess(data);
             }
             @Override
             public void onFail(int errorCode, String msg) {
@@ -193,7 +191,7 @@ public class MiBand {
                 callback.onFail(errorCode, msg);
             }
         };
-        this.io.sensorData(ioCallback);
+        this.io.sensorData(activate_disactivate,  ioCallback);
         }
 
 

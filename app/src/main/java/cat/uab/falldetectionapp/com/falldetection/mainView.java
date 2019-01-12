@@ -6,6 +6,9 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -16,6 +19,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -24,7 +28,15 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.PointsGraphSeries;
+
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -32,7 +44,7 @@ import cat.uab.falldetectionapp.com.falldetection.listeners.NotifyListener;
 import cat.uab.falldetectionapp.com.falldetection.model.BatteryInfo;
 
 public class mainView extends AppCompatActivity{
-    Button authentication_btn, DiscoverButton, show_info;
+    Button authentication_btn, DiscoverButton, activate_detection, device_info;
     ListView list, lvNewDevices, list_paired;
     TextView status, batteryPercent;
     BluetoothAdapter bluetoothAdapter;
@@ -42,7 +54,7 @@ public class mainView extends AppCompatActivity{
     private ActionBarDrawerToggle t;
     private NavigationView nv;
     private MiBand miband;
-    private boolean connectionChecker = false;
+    private boolean connectionChecker = false, activate_disactivate = true;
     private static final int REQUEST_ENABLE = 0;
     private static final int REQUEST_DISCOVERABLE = 0;
     private static final String TAG = "MainActivity";
@@ -53,6 +65,19 @@ public class mainView extends AppCompatActivity{
     private Map<UUID, String> deviceInfoMap;
     private final Object object = new Object();
     public DeviceListAdapter mDeviceListAdapter, pairedListAdapter;
+    private static Timer timer;
+    private TimerTask timertask;
+    public LineGraphSeries<DataPoint> xSeries, ySeries, zSeries;
+    public double continuous = 0.0;
+    public double y = 0.0;
+    private GraphView mScatterPlot;
+    private SensorManager sensorManager;
+    private double ax, ay, az;   // these are the acceleration in x,y and z axis
+
+    //make xyValueArray global
+    private ArrayList<XYValue> xValueArray;
+    private ArrayList<XYValue> yValueArray;
+    private ArrayList<XYValue> zValueArray;
 
 
     @Override
@@ -65,10 +90,15 @@ public class mainView extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_view);
-        Intent intent = this.getIntent();
+        final Intent intent = this.getIntent();
+        timer = new Timer();
         postConnectionLayout = findViewById(R.id.postConnectionLayout);
         postConnectionLayout.setVisibility(View.GONE);
         miband = new MiBand(this);
+        mScatterPlot = findViewById(R.id.scatterPlotBand);
+        xValueArray = new ArrayList<>();
+        yValueArray = new ArrayList<>();
+        zValueArray = new ArrayList<>();
         final BluetoothDevice device = intent.getParcelableExtra("device");
         if(device != null){
             status = findViewById(R.id.status);
@@ -114,12 +144,17 @@ public class mainView extends AppCompatActivity{
                 int id = item.getItemId();
                 switch(id)
                 {
+                    case R.id.real_time_graph:
+                        intent.setClass(mainView.this, realtime_diagram.class);
+                        mainView.this.startActivity(intent);
+                        break;
                     case R.id.account:
                         Toast.makeText(mainView.this, "Developer Info",Toast.LENGTH_SHORT).show();
+                        break;
                     default:
                         return true;
                 }
-
+            return true;
             }
         });
 
@@ -145,7 +180,7 @@ public class mainView extends AppCompatActivity{
                         @Override
                         public void onSuccess(Object data) {
                             System.out.println("success");
-                            showDeviceInfos();
+                            makePanelVisible();
                         }
                         @Override
                         public void onFail(int errorCode, String msg) {
@@ -158,6 +193,63 @@ public class mainView extends AppCompatActivity{
 
             }
         });
+
+        activate_detection = findViewById(R.id.activate_detection);
+        activate_detection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(activate_disactivate){
+                    activate_detection.setText("fall detection activated");
+                    activate_detection.setTextColor(Color.parseColor("#00b22f"));
+                    miband.sensorData(activate_disactivate,  new ActionCallback() {
+                        @Override
+                        public void onSuccess(Object data) {
+                            System.out.println("successfully activated");
+                        }
+                        @Override
+                        public void onFail(int errorCode, String msg) {
+                            System.out.println("activation fail");
+                        }
+                    });
+                }else{
+                    activate_detection.setText("fall detection deactivated");
+                    activate_detection.setTextColor(Color.parseColor("#000000"));
+                    miband.sensorData(activate_disactivate,  new ActionCallback() {
+                        @Override
+                        public void onSuccess(Object data) {
+                            System.out.println("successfully deactivated");
+                        }
+                        @Override
+                        public void onFail(int errorCode, String msg) {
+                            System.out.println("deactivation fail");
+                        }
+                    });
+                }
+                activate_disactivate = !activate_disactivate;
+
+            }
+        });
+        device_info = findViewById(R.id.device_info);
+        device_info.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //showDeviceInfos();
+                miband.heartRate();
+            }
+        });
+
+    }
+
+    public void makePanelVisible(){
+        batteryPercent = findViewById(R.id.batteryPercent);
+        device_info = findViewById(R.id.device_info);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                activate_detection.setVisibility(View.VISIBLE);
+                device_info.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
     public void showDeviceInfos(){
@@ -165,7 +257,6 @@ public class mainView extends AppCompatActivity{
             @Override
             public void onSuccess(Object data) {
                 BatteryInfo info = (BatteryInfo) data;
-                System.out.println(String.valueOf(info.getLevel())+"%");
                 setBattery(String.valueOf(info.getLevel())+"%");
             }
 
@@ -183,6 +274,15 @@ public class mainView extends AppCompatActivity{
             public void run() {
                 batteryPercent.setText(battery);
                 postConnectionLayout.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void setTexts(final Button button, final String text){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                button.setText(text);
             }
         });
     }
@@ -210,13 +310,6 @@ public class mainView extends AppCompatActivity{
     }
 
 
-    private void handleDeviceInfo(BluetoothGattCharacteristic characteristic) {
-        String value = characteristic.getStringValue(0);
-        System.out.println("onCharacteristicRead: " + value + " UUID " + characteristic.getUuid().toString());
-        synchronized (object) {
-            object.notify();
-        }
-    }
     private void handleHeartRateData(final BluetoothGattCharacteristic characteristic) {
         byte[] data = characteristic.getValue();
         System.out.println(characteristic.getValue());
@@ -241,6 +334,85 @@ public class mainView extends AppCompatActivity{
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void plot_mi_band(Double x_value, Double y_value, Double z_value){
+        System.out.println("x-axis:"+ x_value+" y-axis:"+y_value+" z-axis:"+z_value+";");
+        System.out.println(mScatterPlot);
+        xSeries = new LineGraphSeries<>();
+        ySeries = new LineGraphSeries<>();
+        zSeries = new LineGraphSeries<>();
+//
+//        continuous = continuous + 5;
+//        xValueArray.add(new XYValue(continuous, x_value));
+//        for(int i = 0;i <xValueArray.size(); i++){
+//            if (xValueArray.size() > 20){
+//                xValueArray.remove(0);
+//                xSeries.resetData(new DataPoint[] {});
+//            }
+//            try{
+//                double x = xValueArray.get(i).getX();
+//                double y = xValueArray.get(i).getY();
+//                xSeries.appendData(new DataPoint(x, y),true, 10);
+//            }catch (IllegalArgumentException e){
+//                System.out.println("createScatterPlot: IllegalArgumentException: " + e.getMessage() );
+//            }
+//        }
+//        yValueArray.add(new XYValue(continuous, y_value));
+//        for(int i = 0;i <yValueArray.size(); i++){
+//            if (yValueArray.size() > 20){
+//                yValueArray.remove(0);
+//                ySeries.resetData(new DataPoint[] {});
+//            }
+//            try{
+//                double x = yValueArray.get(i).getX();
+//                double y = yValueArray.get(i).getY();
+//                ySeries.appendData(new DataPoint(x, y),true, 10);
+//            }catch (IllegalArgumentException e){
+//                System.out.println("createScatterPlot: IllegalArgumentException: " + e.getMessage() );
+//            }
+//        }
+//        zValueArray.add(new XYValue(continuous, z_value));
+//        for(int i = 0;i <zValueArray.size(); i++){
+//            if (zValueArray.size() > 20){
+//                zValueArray.remove(0);
+//                zSeries.resetData(new DataPoint[] {});
+//            }
+//            try{
+//                double x = zValueArray.get(i).getX();
+//                double y = zValueArray.get(i).getY();
+//                zSeries.appendData(new DataPoint(x, y),true, 10);
+//            }catch (IllegalArgumentException e){
+//                System.out.println("createScatterPlot: IllegalArgumentException: " + e.getMessage() );
+//            }
+//        }
+//
+//        //set some properties
+//        //xySeries.setShape(PointsGraphSeries.Shape.POINT);
+//        xSeries.setColor(Color.RED);
+//        ySeries.setColor(Color.GREEN);
+//        zSeries.setColor(Color.BLUE);
+//        //xySeries.setSize(5f);
+//
+//        //set Scrollable and Scaleable
+//        mScatterPlot.getViewport().setScalable(true);
+//        mScatterPlot.getViewport().setScalableY(true);
+//        mScatterPlot.getViewport().setScrollable(true);
+//        mScatterPlot.getViewport().setScrollableY(true);
+//
+//        //set manual x bounds
+//        //mScatterPlot.getViewport().setYAxisBoundsManual(true);
+//        mScatterPlot.getViewport().setMaxY(60);
+//        mScatterPlot.getViewport().setMinY(-60);
+//
+//        //set manual y bounds
+//        //mScatterPlot.getViewport().setXAxisBoundsManual(true);
+//        mScatterPlot.getViewport().setMaxX(100 + continuous);
+//        mScatterPlot.getViewport().setMinX(-100 + continuous);
+//
+//        mScatterPlot.addSeries(xSeries);
+//        mScatterPlot.addSeries(ySeries);
+//        mScatterPlot.addSeries(zSeries);
     }
 
 }

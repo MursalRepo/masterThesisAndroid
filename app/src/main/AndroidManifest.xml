@@ -30,7 +30,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".mainView" />
-        <activity android:name=".DiscoverDevice"></activity>
+        <activity android:name=".DiscoverDevice" />
+        <activity android:name=".realtime_diagram"></activity>
     </application>
 
 </manifest>
