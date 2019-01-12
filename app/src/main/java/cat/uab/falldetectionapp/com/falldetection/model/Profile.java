@@ -119,6 +119,7 @@ public class Profile {
 
     // General service
     public static final UUID UUID_CHARACTERISTIC_DEVICE_NAME = UUID.fromString(String.format(BASE_UUID, "2A00"));
+    public static final UUID UUID_CHARACTERISTIC_DEVICE_INFO = UUID.fromString("00002a25-0000-1000-8000-00805f9b34fb");
 
     // Miband service 1
     public static final UUID UUID_BUTTON_TOUCH = UUID.fromString("00000010-0000-3512-2118-0009af100700");

@@ -123,7 +123,6 @@ class BluetoothIO extends BluetoothGattCallback {
             }
             this.currentCallback = callback;
             BluetoothGattCharacteristic chara = getCharacteristic(uuid);
-            System.out.println(chara);
             if (null == chara) {
                 this.onFail(-1, "BluetoothGattCharacteristic " + uuid + " is not exsit");
                 return;
@@ -178,13 +177,6 @@ class BluetoothIO extends BluetoothGattCallback {
                 return;
             }
             boolean result = gatt.setCharacteristicNotification(characteristic, true);
-//            for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
-//                if (descriptor.getUuid().equals(serviceAuthDEscrUUID)) {
-//                    System.out.println("Found Notify: " + descriptor.getUuid().toString());
-//                    descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-//                    result = gatt.writeDescriptor(descriptor);
-//                }
-//            }
             if (result) {
                 BluetoothGattDescriptor notifyDescriptor = characteristic.getDescriptor(Profile.UUID_DESCRIPTOR_GATT_CLIENT_CHARACTERISTIC_CONFIGURATION);
                 if (notifyDescriptor != null) {
@@ -198,23 +190,15 @@ class BluetoothIO extends BluetoothGattCallback {
                     System.out.println("Descriptor for characteristic " + characteristic.getUuid() + " is null");
                 }
             }
-            System.out.println(result);
-            TimeUnit.SECONDS.sleep(1);
-            //characteristic.setValue(new byte[]{0x01, 0x8, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45});
-                                                // [3, 8, -57, 115, -112, 112, -107, 60, -64, -40, -122, 100, 38, -83, 51, -102, -55, -31]
-            //characteristic.setValue(new byte[]{0x08, 0x01, 0x3c, 0x00, 0x04, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00});
-            //gatt.writeCharacteristic(characteristic);
-
-            //builder.write(getCharacteristic(HuamiService.UUID_CHARACTERISTIC_AUTH), requestAuthNumber());
+            TimeUnit.SECONDS.sleep(2);
             byte[] requestAuthNumber = new byte[]{Profile.AUTH_REQUEST_RANDOM_AUTH_NUMBER, authFlags};
 
             if (characteristic.setValue(requestAuthNumber)) {
                 gatt.writeCharacteristic(characteristic);
                 System.out.println("auth number set");
             }
-
-
             this.currentCallback = callback;
+
         } catch (Throwable tr) {
             System.out.println(tr);
             this.onFail(-1, tr.getMessage());
@@ -306,151 +290,44 @@ class BluetoothIO extends BluetoothGattCallback {
             }
 
         }
-
-//        BluetoothGattCharacteristic sensorData1 = getCharacteristic(SENSOR_DATA);
-//        System.out.println(sensorData1);
-//        if (sensorData1 != null) {
-//                System.out.println("* Statring listening");
-//                boolean status =  gatt.setCharacteristicNotification(sensorData1, true);
-//                System.out.println("* Set notification status :" + status);
-//                BluetoothGattCharacteristic sensorControl = getCharacteristic(SENSOR_CONTROL);
-//                if (sensorControl.setValue(startSensorRead1)) {
-//                    gatt.writeCharacteristic(sensorControl);
-//                    System.out.println("value 1 setted");
-//                }
-//            if (sensorControl.setValue(startSensorRead2)) {
-//                gatt.writeCharacteristic(sensorControl);
-//                System.out.println("value 2 setted");
-//            }
-//            }
         System.out.println("this done");
-        //this.currentCallback = currentCallback;
     }
 
     public void deviceInfo(UUID UUID_CHARACTERISTIC_1_SENSOR_CONTROL, UUID UUID_DESCRIPTOR_UPDATE_NOTIFICATION, UUID UUID_CHARACTERISTIC_DEVICEEVENT, UUID sensor, UUID uid, ActionCallback currentCallback) {
-        UUID service = Profile.UUID_SERVICE_MIBAND_SERVICE;
-        UUID char_ = Profile.UUID_BUTTON_TOUCH;
-        System.out.println("* Getting gatt service, UUID:" + service.toString());
-        BluetoothGattService myGatService = gatt.getService(service/*Consts.UUID_SERVICE_MIBAND_SERVICE*/);
-        if (myGatService != null) {
-            System.out.println("* Getting gatt Characteristic. UUID: " + char_.toString());
-            BluetoothGattCharacteristic myGatChar = myGatService.getCharacteristic(char_/*Consts.UUID_BUTTON_TOUCH*/);
-            if (myGatChar != null) {
-                System.out.println("* Statring listening");
-                // second parametes is for starting\stopping the listener.
-                boolean status =  gatt.setCharacteristicNotification(myGatChar, true);
-                System.out.println("* Set notification status :");
-            }
-        }
-        //Consts.UUID_SERVICE_HEARTBEAT,
-        //Consts.UUID_START_HEARTRATE_CONTROL
-        // _POINT,
-        //Consts.BYTE_NEW_HEART_RATE_SCAN
-//        UUID UUID_SERVICE_HEARTBEAT = Profile.UUID_SERVICE_HEARTBEAT;
-//        UUID UUID_CHAR_HEARTRATE = Profile.UUID_CHAR_HEARTRATE;
-//        System.out.println("* Getting gatt service, UUID:" + UUID_SERVICE_HEARTBEAT.toString());
-//        BluetoothGattService myGatService2 = gatt.getService(UUID_SERVICE_HEARTBEAT /*Consts.UUID_SERVICE_HEARTBEAT*/);
-//        if (myGatService2 != null) {
-//            BluetoothGattCharacteristic myGatChar2 = myGatService2.getCharacteristic(UUID_CHAR_HEARTRATE /*Consts.UUID_START_HEARTRATE_CONTROL_POINT*/);
-//            if (myGatChar2 != null) {
-//                System.out.println("* Writing trigger");
-//                myGatChar2.setValue(Profile.BYTE_NEW_HEART_RATE_SCAN /*Consts.BYTE_NEW_HEART_RATE_SCAN*/);
-//                boolean status =  gatt.writeCharacteristic(myGatChar2);
-//                System.out.println("* Writting trigger status :" + status);
+//        UUID service = Profile.UUID_SERVICE_MIBAND_SERVICE;
+//        UUID char_ = Profile.UUID_BUTTON_TOUCH;
+//        System.out.println("* Getting gatt service, UUID:" + service.toString());
+//        BluetoothGattService myGatService = gatt.getService(service/*Consts.UUID_SERVICE_MIBAND_SERVICE*/);
+//        if (myGatService != null) {
+//            System.out.println("* Getting gatt Characteristic. UUID: " + char_.toString());
+//            BluetoothGattCharacteristic myGatChar = myGatService.getCharacteristic(char_/*Consts.UUID_BUTTON_TOUCH*/);
+//            if (myGatChar != null) {
+//                System.out.println("* Statring listening");
+//                // second parametes is for starting\stopping the listener.
+//                boolean status =  gatt.setCharacteristicNotification(myGatChar, true);
+//                System.out.println("* Set notification status :");
 //            }
 //        }
+        BluetoothGattService myGatService = gatt.getService(UUIDs.DEVICE_INFORMATION_SERVICE/*Consts.UUID_SERVICE_MIBAND_SERVICE*/);
+        BluetoothGattCharacteristic characteristic = myGatService.getCharacteristic(Profile.UUID_CHARACTERISTIC_DEVICE_INFO);
+        gatt.setCharacteristicNotification(characteristic, true);
+        gatt.readCharacteristic(characteristic);
+//        try {
+//                for (BluetoothGattCharacteristic characteristic : myGatService.getCharacteristics()) {
+//                    System.out.println(characteristic);
+//                    gatt.setCharacteristicNotification(characteristic, true);
+//                    gatt.readCharacteristic(characteristic);
+//                    synchronized (object) {
+//                        object.wait(2000);
+//                    }
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
-        //        System.out.println("device info");
-//        BluetoothGattCharacteristic devic_evente = getCharacteristic(Profile.UUID_CHARACTERISTIC_2_SENSOR_DATA);
-//        BluetoothGattDescriptor notifyDescriptor = devic_evente.getDescriptor(Profile.UUID_DESCRIPTOR_GATT_CLIENT_CHARACTERISTIC_CONFIGURATION);
-//        notifyDescriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-//        gatt.writeDescriptor(notifyDescriptor);
-//
-//        BluetoothGattCharacteristic sensorData1 = getCharacteristic(Profile.UUID_CHARACTERISTIC_1_SENSOR_CONTROL);
-//        if (sensorData1.setValue(startSensorRead1)) {
-//            gatt.writeCharacteristic(sensorData1);
-//        }
-//        if (sensorData1.setValue(startSensorRead2)) {
-//            gatt.writeCharacteristic(sensorData1);
-//        }
         this.currentCallback = currentCallback;
 
-        /// builder.write(getCharacteristic(HuamiService.UUID_CHARACTERISTIC_1_SENSOR_CONTROL), startSensorRead2);
-        //BluetoothGattCharacteristic sensorData = getCharacteristic(sensor);
-
-//        System.out.println(notifyDescriptor);
-//        BluetoothGattCharacteristic sensor_control = getCharacteristic(UUID_CHARACTERISTIC_1_SENSOR_CONTROL);
-//        System.out.println(startSensorRead1);
-//        System.out.println(startSensorRead2);
-//        System.out.println(sensor_control);
-//        gatt.setCharacteristicNotification(sensorData, true);
-//        gatt.setCharacteristicNotification(sensor_control, true);
-//        for (BluetoothGattDescriptor descriptor : sensorData.getDescriptors()) {
-//            if (descriptor.getUuid().equals(UUID_DESCRIPTOR_UPDATE_NOTIFICATION)) {
-//                System.out.println("Found NOTIFICATION BluetoothGattDescriptor: " + descriptor.getUuid().toString());
-//                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-//            }
-//        }
-//        sensorData.setValue(startSensorRead1);
-//        sensorData.setValue(startSensorRead2);
-//        sensor_control.setValue(startSensorRead1);
-//        sensor_control.setValue(startSensorRead2);
-//        byte [] value1 = sensorData.getValue();
-//        System.out.println(Arrays.toString(value1));
-//        for(byte a: value1){
-//            System.out.println(a);
-//        }
-//        byte [] value2 = sensor_control.getValue();
-//        System.out.println(Arrays.toString(value2));
-//        for(byte a: value2){
-//            System.out.println(a);
-//        }
-
-
-//        try {
-//            BluetoothGattService service = gatt.getService(serviceUUID);
-//            System.out.println(service);
-//            BluetoothGattCharacteristic heartRateCharacteristic = service.getCharacteristic(NOTIFICATION_HEARTRATE);
-//            BluetoothGattDescriptor heartRateDescriptor = heartRateCharacteristic.getDescriptor(CUSTOM_SERVICE_AUTH_DESCRIPTOR);
-//            System.out.println(heartRateDescriptor);
-//            gatt.setCharacteristicNotification(heartRateCharacteristic, true);
-//            heartRateDescriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-//            gatt.writeDescriptor(heartRateDescriptor);
-//            System.out.println(heartRateDescriptor);
-//            byte[] data = heartRateCharacteristic.getValue();
-//            System.out.println(heartRateCharacteristic.getValue());
-////            System.out.println("length > " + data.length);
-////            for (byte i: data){
-////                System.out.println("hearth data "+ i);
-////            }
-////            System.out.println("heart > "+heartRateCharacteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0).toString());
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
     }
-
-//    public boolean run_notify(BluetoothGattDescriptor notifyDescriptor ) {
-//            if (notifyDescriptor != null) {
-//                int properties = getCharacteristic().getProperties();
-//                if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-//                    LOG.debug("use NOTIFICATION");
-//                    notifyDescriptor.setValue(enableFlag ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
-//                    result = gatt.writeDescriptor(notifyDescriptor);
-//                } else if ((properties & BluetoothGattCharacteristic.PROPERTY_INDICATE) > 0) {
-//                    LOG.debug("use INDICATION");
-//                    notifyDescriptor.setValue(enableFlag ? BluetoothGattDescriptor.ENABLE_INDICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
-//                    result = gatt.writeDescriptor(notifyDescriptor);
-//                    hasWrittenDescriptor = true;
-//                } else {
-//                    hasWrittenDescriptor = false;
-//                }
-//            } else {
-//                LOG.warn("Descriptor CLIENT_CHARACTERISTIC_CONFIGURATION for characteristic " + getCharacteristic().getUuid() + " is null");
-//                hasWrittenDescriptor = false;
-//            }
-//        return result;
-//    }
 
     public void readRssi(ActionCallback callback) {
         try {
@@ -486,8 +363,6 @@ class BluetoothIO extends BluetoothGattCallback {
         this.notifyListeners.put(characteristicId, listener);
     }
     private void gattServicesDiscovered(List<BluetoothGattService> discoveredGattServices) {
-        System.out.println("all..");
-        System.out.println(discoveredGattServices);
         if (discoveredGattServices == null) {
             System.out.println("No gatt services discovered: null!");
             return;
@@ -579,8 +454,6 @@ class BluetoothIO extends BluetoothGattCallback {
     public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
         super.onCharacteristicWrite(gatt, characteristic, status);
         System.out.println("on characteristics write");
-        System.out.println(characteristic.getValue());
-        System.out.println(status);
         if (BluetoothGatt.GATT_SUCCESS == status) {
             this.onSuccess(characteristic);
         } else {
@@ -608,23 +481,12 @@ class BluetoothIO extends BluetoothGattCallback {
         } else {
             this.onFail(status, "onServicesDiscovered fail");
         }
-        System.out.println("discovered . . . ");
-        System.out.println(gatt.getServices());
-        //listenHeartRate();
-        notifyListenHeartRate(new NotifyListener() {
-            @Override
-            public void onNotify(byte[] data) {
-                System.out.println("notified...");
-                System.out.println("___");
-                System.out.println(data);
-            }
-        });
+        System.out.println("onservicesDiscovered");
     }
 
     @Override
     public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         System.out.println("onCharacteristicChanged");
-        System.out.println(characteristic.getUuid());
         byte[] requestAuthNumber = new byte[]{Profile.AUTH_REQUEST_RANDOM_AUTH_NUMBER, authFlags};
         super.onCharacteristicChanged(gatt, characteristic);
         if (this.notifyListeners.containsKey(characteristic.getUuid())) {
@@ -652,22 +514,17 @@ class BluetoothIO extends BluetoothGattCallback {
                 else if (value[0] == Profile.AUTH_RESPONSE &&
                         value[1] == Profile.AUTH_REQUEST_RANDOM_AUTH_NUMBER &&
                         value[2] == Profile.AUTH_SUCCESS) {
-                    // md5??
-                    System.out.println("first else");
                     byte[] eValue = handleAESAuth(value, getSecretKey());
                     byte[] responseValue = org.apache.commons.lang3.ArrayUtils.addAll(
                             new byte[]{Profile.AUTH_SEND_ENCRYPTED_AUTH_NUMBER, authFlags}, eValue);
-                    //byte[] responseValue = new byte[]{0x01, 0x8, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45};
                     if (characteristic.setValue(responseValue)) {
                         gatt.writeCharacteristic(characteristic);
-                        System.out.println("this is first one");
                     }
                 }
                 else if (value[0] == Profile.AUTH_RESPONSE &&
                         value[1] == Profile.AUTH_SEND_ENCRYPTED_AUTH_NUMBER &&
                         value[2] == Profile.AUTH_SUCCESS) {
-                    System.out.println("second else");
-                    //getSupport().enableFurtherNotifications(builder, true);
+                        System.out.println("second else");
                 }
                 else {
                     System.out.println("non of the if");

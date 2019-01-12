@@ -128,8 +128,8 @@ public class MiBand {
             @Override
             public void onSuccess(Object data) {
                 System.out.println("Authorized");
+                callback.onSuccess(null);
             }
-
             @Override
             public void onFail(int errorCode, String msg) {
                 System.out.println("authorizing failed");
@@ -146,6 +146,8 @@ public class MiBand {
                 System.out.println("got device info");
                 BluetoothGattCharacteristic characteristic = (BluetoothGattCharacteristic) data;
                 System.out.println("device data " + Arrays.toString(characteristic.getValue()));
+                String value = characteristic.getStringValue(0);
+                System.out.println(value);
             }
 
             @Override
