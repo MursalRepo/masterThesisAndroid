@@ -116,6 +116,7 @@ public class DiscoverDevice extends AppCompatActivity {
         final ScanCallback scanCallback = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
+                System.out.println("scan result");
                 BluetoothDevice device = result.getDevice();
                 System.out.println("name:" + device.getName() + ",uuid:"
                         + device.getUuids() + ",add:"

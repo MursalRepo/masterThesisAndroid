@@ -5,7 +5,7 @@ android {
     defaultConfig {
         applicationId "cat.uab.falldetectionapp.com.falldetection"
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -15,6 +15,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    packagingOptions {
+        exclude 'META-INF/proguard/androidx-annotations.pro'
     }
 }
 
@@ -28,5 +31,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'com.jjoe64:graphview:4.2.2'
     implementation files('commons-lang3-3.5.jar')
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0-alpha'
 //    implementation files('GraphView-3.0.jar')
 }

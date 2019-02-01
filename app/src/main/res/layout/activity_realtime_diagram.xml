@@ -39,21 +39,32 @@
         android:text="Z axis _____"
         android:textColor="#1a6aed" />
 
-    <com.jjoe64.graphview.GraphView
-        android:id="@+id/scatterPlot"
-        android:layout_width="match_parent"
-        android:layout_height="230dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="29dp" />
+    <!--<com.jjoe64.graphview.GraphView-->
+        <!--android:id="@+id/scatterPlot"-->
+        <!--android:layout_width="330dp"-->
+        <!--android:layout_height="230dp"-->
+        <!--android:layout_alignParentStart="true"-->
+        <!--android:layout_alignParentTop="true"-->
+        <!--android:layout_marginStart="24dp"-->
+        <!--android:layout_marginTop="29dp" />-->
 
-    <com.jjoe64.graphview.GraphView
-        android:id="@+id/scatterPlotBand"
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart2"
         android:layout_width="match_parent"
-        android:layout_height="230dp"
+        android:layout_height="279dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginStart="0dp"
-        android:layout_marginTop="271dp" />
+        android:layout_marginTop="64dp" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="215dp"
+        android:layout_height="34dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="96dp"
+        android:layout_marginBottom="126dp"
+        android:text="Phone's real time accelerometer"
+        android:textStyle="bold" />
 </RelativeLayout>

@@ -1,5 +1,6 @@
 package cat.uab.falldetectionapp.com.falldetection;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -8,7 +9,14 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
+import android.widget.Toast;
+
+import com.jjoe64.graphview.GraphView;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -49,6 +57,7 @@ class BluetoothIO extends BluetoothGattCallback {
     private static final byte[] stopSensorRead = new byte[]{0x03};
     private static final byte[] startHeartMeasurementContinuous = new byte[]{0x15, Profile.COMMAND_SET__HR_CONTINUOUS, 1};
     private static Timer timer;
+    private Context context;
     private byte authFlags = Profile.AUTH_BYTE;
     protected Set<UUID> getSupportedServices() {
         return mSupportedServices;
@@ -232,7 +241,7 @@ class BluetoothIO extends BluetoothGattCallback {
         }
     }
 
-    public void sensorData(Boolean activate_disactivate, ActionCallback currentCallback){
+    public void sensorData(Boolean activate_disactivate, NotifyListener listener){
         UUID SERVICE = Profile.UUID_SERVICE_MILI;
         UUID SENSOR_DATA = Profile.UUID_CHARACTERISTIC_2_SENSOR_DATA;
         UUID SENSOR_CONTROL = Profile.UUID_CHARACTERISTIC_1_SENSOR_CONTROL;
@@ -297,10 +306,11 @@ class BluetoothIO extends BluetoothGattCallback {
             }
 
         }
+        this.notifyListeners.put(SENSOR_DATA, listener);
     }
 
     public void deviceInfo(UUID UUID_CHARACTERISTIC_1_SENSOR_CONTROL, UUID UUID_DESCRIPTOR_UPDATE_NOTIFICATION, UUID UUID_CHARACTERISTIC_DEVICEEVENT, UUID sensor, UUID uid, ActionCallback currentCallback) {
-        BluetoothGattService myGatService = gatt.getService(UUIDs.DEVICE_INFORMATION_SERVICE/*Consts.UUID_SERVICE_MIBAND_SERVICE*/);
+        BluetoothGattService myGatService = gatt.getService(Profile.DEVICE_INFORMATION_SERVICE/*Consts.UUID_SERVICE_MIBAND_SERVICE*/);
         BluetoothGattCharacteristic characteristic = myGatService.getCharacteristic(Profile.UUID_CHARACTERISTIC_DEVICE_INFO);
         gatt.setCharacteristicNotification(characteristic, true);
         gatt.readCharacteristic(characteristic);
@@ -308,20 +318,6 @@ class BluetoothIO extends BluetoothGattCallback {
 
     }
 
-    public void readRssi(ActionCallback callback) {
-        try {
-            if (null == gatt) {
-                System.out.println( "connect to miband first");
-                throw new Exception("connect to miband first");
-            }
-            this.currentCallback = callback;
-            this.gatt.readRemoteRssi();
-        } catch (Throwable tr) {
-            System.out.println(tr);
-            this.onFail(-1, tr.getMessage());
-        }
-
-    }
 
     public void setNotifyListener(UUID serviceUUID, UUID characteristicId, NotifyListener listener) {
         if (null == gatt) {
@@ -395,7 +391,7 @@ class BluetoothIO extends BluetoothGattCallback {
         System.out.println("Notified.....");
     }
 
-    void startScanHeartRate() {
+    void startScanHeartRate(NotifyListener listener) {
         BluetoothGattService myGatService = gatt.getService(Profile.UUID_SERVICE_HEARTRATE);
         if (myGatService != null) {
             System.out.println("listening heart rate");
@@ -418,6 +414,7 @@ class BluetoothIO extends BluetoothGattCallback {
         System.out.println(bchar);
         bchar.setValue(startHeartMeasurementContinuous);
         gatt.writeCharacteristic(bchar);
+        this.notifyListeners.put(Profile.UUID_NOTIFICATION_HEARTRATE, listener);
         //private static final byte[] startHeartMeasurementContinuous = new byte[]{0x15, MiBandService.COMMAND_SET__HR_CONTINUOUS, 1};
 
     }
@@ -451,7 +448,6 @@ class BluetoothIO extends BluetoothGattCallback {
     @Override
     public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
         super.onCharacteristicWrite(gatt, characteristic, status);
-        System.out.println("on characteristics write");
         if (BluetoothGatt.GATT_SUCCESS == status) {
             this.onSuccess(characteristic);
         } else {
@@ -487,15 +483,19 @@ class BluetoothIO extends BluetoothGattCallback {
         byte[] requestAuthNumber = new byte[]{Profile.AUTH_REQUEST_RANDOM_AUTH_NUMBER, authFlags};
         super.onCharacteristicChanged(gatt, characteristic);
         if (this.notifyListeners.containsKey(characteristic.getUuid())) {
-            this.notifyListeners.get(characteristic.getUuid()).onNotify(characteristic.getValue());
+            //this.notifyListeners.get(characteristic.getUuid()).onNotify(characteristic.getValue());
         }
         UUID characteristicUUID = characteristic.getUuid();
         if (Profile.UUID_CHARACTERISTIC_2_SENSOR_DATA.equals(characteristicUUID)) {
-            handleSensorData(characteristic.getValue());
+            this.notifyListeners.get(characteristic.getUuid()).onNotify(characteristic.getValue());
+            //this.notifyListeners.get(characteristic.getUuid()).onNotify(characteristic.getValue());
+            //handleSensorData(characteristic.getValue());
+            //this.onSuccess("aaa");
             return;
         }
         if(Profile.UUID_NOTIFICATION_HEARTRATE.equals(characteristicUUID)){
-            handleHeartRate(characteristic);
+            this.notifyListeners.get(characteristic.getUuid()).onNotify(characteristic.getValue());
+            //handleHeartRate(characteristic);
             return;
         }
         if (Profile.UUID_CHARACTERISTIC_AUTH.equals(characteristicUUID)) {
@@ -566,8 +566,9 @@ class BluetoothIO extends BluetoothGattCallback {
     private void handleSensorData(byte[] value) {
         int counter=0, step=0;
         double xAxis=0.0, yAxis=0.0, zAxis=0.0;
-        double scale_factor = 1000.0;
-        double gravity = 9.81;
+        double scale_factor = 250.0;
+        //double gravity = 9.81;
+        double gravity = 10;
 
         if ((value.length - 2) % 6 != 0) {
             System.out.println("wrong value");
@@ -606,18 +607,27 @@ class BluetoothIO extends BluetoothGattCallback {
                     zAxis = (zAxisRawValue & 0xfff) - 4097;
                 }
                 zAxis = (zAxis / scale_factor) * gravity;
-                //System.out.println(xAxis);
-                mainView mainview = new mainView();
-                mainview.plot_mi_band(xAxis, yAxis, zAxis);
                 //mainView.plot_mi_band(xAxis, yAxis, zAxis);
-                //System.out.println("READ SENSOR DATA VALUES: counter:"+counter+" step:"+step+" x-axis:"+ String.format("%.03f",xAxis)+" y-axis:"+String.format("%.03f",yAxis)+" z-axis:"+String.format("%.03f",zAxis)+";");
+//                realtime_diagram rd = new realtime_diagram();
+//                rd.mi_band_plot(xAxis-1, yAxis-1, zAxis-1);
+                System.out.println("x-axis:"+ String.format("%.03f",xAxis-2)+" y-axis:"+String.format("%.03f",yAxis-1)+" z-axis:"+String.format("%.03f",zAxis-1)+";");
+                double result = Math.sqrt(Math.pow(Math.abs(xAxis-1), 2) + Math.pow(Math.abs(yAxis-1), 2) + Math.pow(Math.abs(zAxis-1), 2));
+                //System.out.println(String.format("%.03f",result));
+                if(result > 20){
+                    //mainView.showToastMethod();
+                }
             }
         }
     }
+
     public void handleHeartRate(final BluetoothGattCharacteristic characteristic){
         byte[] data = characteristic.getValue();
         for (byte i: data){
             System.out.println("hearth data "+ i);
         }
+    }
+
+    public static void showToastMethod(Context context) {
+        Toast.makeText(context, "mymessage ", Toast.LENGTH_SHORT).show();
     }
 }

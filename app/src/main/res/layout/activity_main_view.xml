@@ -73,13 +73,13 @@
 
         <RelativeLayout
             android:id="@+id/postConnectionLayout"
-            android:layout_width="382dp"
-            android:layout_height="50dp"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:layout_marginStart="0dp"
-            android:background="@color/colorRed"
-            android:layout_marginTop="167dp">
+            android:layout_marginTop="167dp"
+            android:background="@color/colorRed">
 
             <TextView
                 android:id="@+id/textView"
@@ -90,8 +90,8 @@
                 android:layout_marginStart="9dp"
                 android:layout_marginTop="15dp"
                 android:text="Battery: "
-                android:textColor="#fff"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:textColor="#fff" />
 
             <TextView
                 android:id="@+id/batteryPercent"
@@ -101,9 +101,9 @@
                 android:layout_alignParentTop="true"
                 android:layout_marginStart="107dp"
                 android:layout_marginTop="15dp"
-                android:textColor="#fff"
                 android:text=" - %"
-                android:textAlignment="viewStart" />
+                android:textAlignment="viewStart"
+                android:textColor="#fff" />
         </RelativeLayout>
 
         <Button
@@ -124,8 +124,86 @@
             android:layout_marginLeft="5dp"
             android:layout_marginTop="-282dp"
             android:visibility="gone"
-            android:text="device info" />
+            android:text="battery info" />
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true">
+
+            <Button
+                android:id="@+id/closeId"
+                android:layout_width="137dp"
+                android:layout_height="35dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="247dp"
+                android:layout_marginTop="261dp"
+                android:text="shut down" />
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart"
+                android:layout_width="match_parent"
+                android:layout_height="213dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="0dp"
+                android:layout_marginTop="45dp" />
+
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="191dp"
+                android:layout_height="30dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="193dp"
+                android:layout_marginTop="6dp"
+                android:max="100"/>
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="19dp"
+                android:layout_marginTop="6dp"
+                android:text="Fall threshold:"
+                android:textColor="@color/colorRed"
+                android:textSize="20dp" />
+
+            <TextView
+                android:id="@+id/threshold"
+                android:layout_width="42dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="151dp"
+                android:layout_marginTop="6dp"
+                android:text="15"
+                android:textColor="@color/colorRed"
+                android:textSize="20dp" />
+
+            <Switch
+                android:id="@+id/plot"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="11dp"
+                android:layout_marginBottom="8dp"
+                android:text="Plot  " />
+
+            <TextView
+                android:id="@+id/heartRate"
+                android:layout_width="139dp"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/closeId"
+                android:layout_alignEnd="@+id/textView4"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="-80dp"
+                android:textColor="@color/colorRed"
+                android:text="Heart rate: " />
+        </RelativeLayout>
     </RelativeLayout>
 
     <android.support.design.widget.NavigationView

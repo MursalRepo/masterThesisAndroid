@@ -4,13 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-/**
- * 手环电池相关信息类
- */
 public class BatteryInfo {
-    /**
-     * 电池当前所在的状态
-     */
+
     static enum Status {
         UNKNOWN, LOW, FULL, CHARGING, NOT_CHARGING;
 
