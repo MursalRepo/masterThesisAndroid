@@ -59,6 +59,9 @@ public class MiBand {
     public void connect(BluetoothDevice device, final ActionCallback callback) {
         this.io.connect(context, device, callback);
     }
+    public void disconnect() {
+        this.io.disconnect();
+    }
 
     public void setDisconnectedListener(NotifyListener disconnectedListener) {
         this.io.setDisconnectedListener(disconnectedListener);
@@ -167,7 +170,7 @@ public class MiBand {
                 listener.onNotify(data);
             }
         });
-        }
+    }
 
 
 

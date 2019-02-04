@@ -3,7 +3,10 @@
 
     <item android:id="@+id/real_time_graph"
         android:icon="@drawable/ic_portrait_black_24dp"
-        android:title="Show real-time graph"/>
+        android:title="Phone's accelerometer graph"/>
+    <item android:id="@+id/configuration"
+        android:icon="@drawable/ic_portrait_black_24dp"
+        android:title="Configuration"/>
     <item android:id="@+id/account"
         android:icon="@drawable/ic_portrait_black_24dp"
         android:title="Info"/>

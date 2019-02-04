@@ -7,13 +7,15 @@
 
     <ListView
         android:id="@+id/DevicesList"
-        android:layout_width="334dp"
-        android:layout_height="355dp"
+        android:layout_width="332dp"
+        android:layout_height="271dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginStart="26dp"
         android:layout_marginTop="49dp"
-        android:divider="@color/colorRed" />
+        android:divider="@color/colorRed"
+        android:minHeight="?android:attr/listPreferredItemHeight"
+        android:paddingBottom="10dp" />
 
     <TextView
         android:id="@+id/DiscoverText"
@@ -27,4 +29,17 @@
         android:textAlignment="center"
         android:textColor="@color/colorGray"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/DevicesList"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="-12dp"
+        android:layout_marginBottom="158dp"
+        android:text="* Click on the device you want to connect"
+        android:textAlignment="center"
+        android:textSize="17sp"
+        android:textStyle="italic" />
 </RelativeLayout>

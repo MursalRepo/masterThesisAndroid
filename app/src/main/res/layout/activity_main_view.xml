@@ -11,8 +11,8 @@
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         tools:context=".mainView">
 
         <ImageView
@@ -25,6 +25,18 @@
             android:background="@color/colorRed"
             android:scaleType="fitStart"
             android:src="@drawable/smart_band" />
+
+        <ImageView
+            android:id="@+id/lightIndigator"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignTop="@+id/textView3"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="320dp"
+            android:layout_marginTop="-4dp"
+            android:background="@color/colorRed"
+            android:scaleType="fitStart"
+            android:src="@drawable/circleblack" />
 
         <TextView
             android:id="@+id/textView3"
@@ -44,11 +56,11 @@
             android:layout_height="wrap_content"
             android:layout_alignTop="@+id/textView3"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="61dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginEnd="73dp"
             android:text="disconnected"
             android:textColor="#ffffff"
-            android:textSize="12sp" />
+            android:textSize="15sp" />
 
         <Button
             android:id="@+id/discoverButton"
@@ -71,66 +83,68 @@
             android:text="authenticate"
             android:textSize="12sp" />
 
-        <RelativeLayout
-            android:id="@+id/postConnectionLayout"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
+        <TextView
+            android:id="@+id/batteryText"
+            android:layout_width="89dp"
+            android:layout_height="20dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:layout_marginStart="0dp"
-            android:layout_marginTop="167dp"
-            android:background="@color/colorRed">
-
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="89dp"
-                android:layout_height="20dp"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginStart="9dp"
-                android:layout_marginTop="15dp"
-                android:text="Battery: "
-                android:textAlignment="center"
-                android:textColor="#fff" />
-
-            <TextView
-                android:id="@+id/batteryPercent"
-                android:layout_width="40dp"
-                android:layout_height="20dp"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginStart="107dp"
-                android:layout_marginTop="15dp"
-                android:text=" - %"
-                android:textAlignment="viewStart"
-                android:textColor="#fff" />
-        </RelativeLayout>
+            android:layout_marginStart="136dp"
+            android:layout_marginTop="36dp"
+            android:text="Battery: "
+            android:textColor="#fff"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/activate_detection"
-            android:layout_width="229dp"
-            android:layout_height="wrap_content"
-            android:layout_alignStart="@+id/discoverButton"
-            android:layout_alignTop="@+id/device_info"
-            android:visibility="gone"
-            android:text="activate fall detection" />
-
-        <Button
-            android:id="@+id/device_info"
-            android:layout_width="118dp"
+            android:layout_width="383dp"
             android:layout_height="wrap_content"
             android:layout_below="@+id/image"
-            android:layout_alignParentStart="true"
-            android:layout_marginLeft="5dp"
+            android:layout_alignStart="@+id/discoverButton"
+            android:layout_marginStart="-131dp"
             android:layout_marginTop="-282dp"
-            android:visibility="gone"
-            android:text="battery info" />
+            android:text="activate fall detection"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/lightIndigatorStatus"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_alignTop="@+id/textView3"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="155dp"
+            android:scaleType="fitStart"
+            android:src="@drawable/circleblack" />
+
+        <ImageView
+            android:id="@+id/lightIndigatorStatus2"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_alignTop="@+id/textView3"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="185dp"
+            android:scaleType="fitStart"
+            android:src="@drawable/circleyellow" />
+
+        <ImageView
+            android:id="@+id/lightIndigatorStatus3"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_alignTop="@+id/textView3"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="215dp"
+            android:scaleType="fitStart"
+            android:src="@drawable/circlegreen" />
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="300dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentBottom="true">
+
 
             <Button
                 android:id="@+id/closeId"
@@ -145,43 +159,11 @@
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/chart"
                 android:layout_width="match_parent"
-                android:layout_height="213dp"
+                android:layout_height="202dp"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
                 android:layout_marginStart="0dp"
-                android:layout_marginTop="45dp" />
-
-            <SeekBar
-                android:id="@+id/seekBar"
-                android:layout_width="191dp"
-                android:layout_height="30dp"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginStart="193dp"
-                android:layout_marginTop="6dp"
-                android:max="100"/>
-
-            <TextView
-                android:id="@+id/textView4"
-                android:layout_width="140dp"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="19dp"
-                android:layout_marginTop="6dp"
-                android:text="Fall threshold:"
-                android:textColor="@color/colorRed"
-                android:textSize="20dp" />
-
-            <TextView
-                android:id="@+id/threshold"
-                android:layout_width="42dp"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="151dp"
-                android:layout_marginTop="6dp"
-                android:text="15"
-                android:textColor="@color/colorRed"
-                android:textSize="20dp" />
+                android:layout_marginTop="46dp" />
 
             <Switch
                 android:id="@+id/plot"
@@ -199,11 +181,43 @@
                 android:layout_height="wrap_content"
                 android:layout_alignTop="@+id/closeId"
                 android:layout_alignEnd="@+id/textView4"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="-80dp"
-                android:textColor="@color/colorRed"
-                android:text="Heart rate: " />
+                android:layout_marginStart="100dp"
+                android:layout_marginTop="9dp"
+                android:text="Heart rate: "
+                android:textColor="@color/colorRed" />
         </RelativeLayout>
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="46dp"
+            android:layout_marginTop="168dp"
+            android:text="Device is disconnected" />
+
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="46dp"
+            android:layout_marginTop="198dp"
+            android:text="Device is connected but detection is not running" />
+
+        <TextView
+            android:id="@+id/textView7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="46dp"
+            android:layout_marginTop="226dp"
+            android:text="Device is connected and detection is running" />
+
+
     </RelativeLayout>
 
     <android.support.design.widget.NavigationView

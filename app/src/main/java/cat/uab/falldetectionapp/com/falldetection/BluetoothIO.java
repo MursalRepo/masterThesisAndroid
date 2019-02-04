@@ -68,6 +68,10 @@ class BluetoothIO extends BluetoothGattCallback {
         BluetoothIO.this.currentCallback = callback;
     }
 
+    public void disconnect(){
+        gatt.close();
+    }
+
     public void setDisconnectedListener(NotifyListener disconnectedListener) {
         this.disconnectedListener = disconnectedListener;
     }
@@ -394,7 +398,6 @@ class BluetoothIO extends BluetoothGattCallback {
     void startScanHeartRate(NotifyListener listener) {
         BluetoothGattService myGatService = gatt.getService(Profile.UUID_SERVICE_HEARTRATE);
         if (myGatService != null) {
-            System.out.println("listening heart rate");
             BluetoothGattCharacteristic heartRateChar = myGatService.getCharacteristic(Profile.UUID_NOTIFICATION_HEARTRATE);
             gatt.setCharacteristicNotification(heartRateChar, true);
             BluetoothGattDescriptor descriptor = heartRateChar.getDescriptor(Profile.CUSTOM_SERVICE_AUTH_DESCRIPTOR);
@@ -408,10 +411,8 @@ class BluetoothIO extends BluetoothGattCallback {
         }catch (InterruptedException e){
 
         }
-        System.out.println("start heart scan button clicked");
         BluetoothGattCharacteristic bchar = gatt.getService(Profile.UUID_SERVICE_HEARTRATE)
                 .getCharacteristic(Profile.UUID_CHAR_HEARTRATE);
-        System.out.println(bchar);
         bchar.setValue(startHeartMeasurementContinuous);
         gatt.writeCharacteristic(bchar);
         this.notifyListeners.put(Profile.UUID_NOTIFICATION_HEARTRATE, listener);

@@ -32,5 +32,9 @@ dependencies {
     implementation 'com.jjoe64:graphview:4.2.2'
     implementation files('commons-lang3-3.5.jar')
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0-alpha'
-//    implementation files('GraphView-3.0.jar')
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.+'
+    //    implementation files('GraphView-3.0.jar')
+    implementation files('src/main/res/activation.jar')
+    implementation files('src/main/res/additionnal.jar')
+    implementation files('src/main/res/mail.jar')
 }

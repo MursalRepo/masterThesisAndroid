@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
@@ -23,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -52,14 +54,14 @@ import java.util.concurrent.TimeUnit;
 
 import cat.uab.falldetectionapp.com.falldetection.listeners.NotifyListener;
 import cat.uab.falldetectionapp.com.falldetection.model.BatteryInfo;
+import pl.droidsonroids.gif.GifImageView;
 
 public class mainView extends AppCompatActivity{
     Button authentication_btn, DiscoverButton, activate_detection, device_info, kill_app;
     ListView list, lvNewDevices, list_paired;
-    TextView status, batteryPercent, threshold, heartRate;
+    TextView status, batteryPercent, threshold, heartRate, batteryText;
     BluetoothAdapter bluetoothAdapter;
     private DrawerLayout dl;
-    RelativeLayout postConnectionLayout;
     private ActionBarDrawerToggle t;
     private NavigationView nv;
     private MiBand miband;
@@ -70,13 +72,14 @@ public class mainView extends AppCompatActivity{
     GraphView mScatterPlot;
     LineChart  mChart;
     Thread thread, threadCount;
-    Boolean plotData = false;
+    Boolean plotData = true;
     Boolean showPlot = false;
     Boolean show_dialog = true;
     SeekBar seekBar;
-    Integer detect_threshold = 15;
+    public static Double detect_threshold = 2.0;
     String countDownValue = "10";
-    Integer timeCount = 10;
+    Integer timeCount = 0;
+    ImageView lightIndigator;
 
     private AlertDialog alertDialog;
 
@@ -91,8 +94,7 @@ public class mainView extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_view);
         final Intent intent = this.getIntent();
-        postConnectionLayout = findViewById(R.id.postConnectionLayout);
-        postConnectionLayout.setVisibility(View.GONE);
+        batteryText = findViewById(R.id.batteryText);
         mChart = findViewById(R.id.chart);
         miband = new MiBand(this, mScatterPlot);
         final BluetoothDevice device = intent.getParcelableExtra("device");
@@ -108,10 +110,12 @@ public class mainView extends AppCompatActivity{
                         device.createBond();
                     }
                     setStatus(R.string.connected);
+                    setIndigator(R.drawable.circleyellow);
                     connectionChecker = true;
                     miband.setDisconnectedListener(new NotifyListener() {
                         @Override
                         public void onNotify(byte[] data) {
+                            setIndigator(R.drawable.circleblack);
                             setStatus(R.string.disconnected);
                             connectionChecker = false;
                         }
@@ -144,8 +148,12 @@ public class mainView extends AppCompatActivity{
                         intent.setClass(mainView.this, realtime_diagram.class);
                         mainView.this.startActivity(intent);
                         break;
+                    case R.id.configuration:
+                        intent.setClass(mainView.this, config.class);
+                        mainView.this.startActivity(intent);
+                        break;
                     case R.id.account:
-                        Toast.makeText(mainView.this, "Developer Info",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mainView.this, "Master thesis UAB Mursal Sheydayev",Toast.LENGTH_LONG).show();
                         break;
                     default:
                         return true;
@@ -197,6 +205,7 @@ public class mainView extends AppCompatActivity{
                 if(activate_disactivate){
                     activate_detection.setText("fall detection running..");
                     activate_detection.setTextColor(Color.parseColor("#00b22f"));
+                    setIndigator(R.drawable.circlegreen);
                     miband.sensorData(activate_disactivate, new NotifyListener() {
                         @Override
                         public void onNotify(byte[] data) {
@@ -205,6 +214,7 @@ public class mainView extends AppCompatActivity{
                     });
                 }else{
                     activate_detection.setText("fall detection deactivated");
+                    setIndigator(R.drawable.circleyellow);
                     activate_detection.setTextColor(Color.parseColor("#000000"));
                     miband.sensorData(activate_disactivate, new NotifyListener() {
                         @Override
@@ -217,19 +227,12 @@ public class mainView extends AppCompatActivity{
 
             }
         });
-        device_info = findViewById(R.id.device_info);
-        device_info.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDeviceInfos();
-
-            }
-        });
 
         kill_app = findViewById(R.id.closeId);
         kill_app.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                miband.disconnect();
                 appExit();
             }
         });
@@ -237,27 +240,27 @@ public class mainView extends AppCompatActivity{
         threshold = findViewById(R.id.threshold);
         seekBar = findViewById(R.id.seekBar);
         plot = findViewById(R.id.plot);
-        seekBar.setMax(100);
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            int progressChangedValue = 0;
-
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                progressChangedValue = progress;
-            }
-
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // TODO Auto-generated method stub
-            }
-
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                if(progressChangedValue < 15){
-                    progressChangedValue = 15;
-                }
-                setTextContect(threshold, Integer.toString(progressChangedValue));
-                detect_threshold = progressChangedValue;
-                //Toast.makeText(mainView.this, "Dete is :" + progressChangedValue, Toast.LENGTH_SHORT).show();
-            }
-        });
+//        seekBar.setMax(10);
+//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//            double progressChangedValue = 0;
+//
+//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//                progressChangedValue = progress;
+//            }
+//
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//                // TODO Auto-generated method stub
+//            }
+//
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//                if(progressChangedValue < 2.0){
+//                    progressChangedValue = 2.0;
+//                }
+//                setTextContect(threshold, Double.toString(progressChangedValue));
+//                detect_threshold = progressChangedValue;
+//                //Toast.makeText(mainView.this, "Dete is :" + progressChangedValue, Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
         plot.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -270,10 +273,11 @@ public class mainView extends AppCompatActivity{
             }
         });
         heartRate = findViewById(R.id.heartRate);
+        lightIndigator = findViewById(R.id.lightIndigator);
 
 
 
-        mChart.getDescription().setEnabled(true);
+        mChart.getDescription().setEnabled(false);
 
         // enable touch gestures
         mChart.setTouchEnabled(true);
@@ -294,13 +298,13 @@ public class mainView extends AppCompatActivity{
 
         // add empty data
         mChart.setData(data);
-
         // get the legend (only possible after setting data)
         Legend l = mChart.getLegend();
 
         // modify the legend ...
         l.setForm(Legend.LegendForm.LINE);
         l.setTextColor(Color.BLACK);
+        l.setEnabled(false);
 
         XAxis xl = mChart.getXAxis();
         xl.setTextColor(Color.BLACK);
@@ -311,8 +315,8 @@ public class mainView extends AppCompatActivity{
         YAxis leftAxis = mChart.getAxisLeft();
         leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(false);
-        leftAxis.setAxisMaximum(30f);
-        leftAxis.setAxisMinimum(-30f);
+        leftAxis.setAxisMaximum(8f);
+        leftAxis.setAxisMinimum(-8f);
         leftAxis.setDrawGridLines(true);
 
         YAxis rightAxis = mChart.getAxisRight();
@@ -340,15 +344,13 @@ public class mainView extends AppCompatActivity{
         if (thread != null){
             thread.interrupt();
         }
-
         thread = new Thread(new Runnable() {
-
             @Override
             public void run() {
                 while (true){
-                    plotData = true;
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(10000);
+                        showDeviceInfos();
                     } catch (InterruptedException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -356,18 +358,24 @@ public class mainView extends AppCompatActivity{
                 }
             }
         });
-
         thread.start();
     }
 
     public void makePanelVisible(){
-        batteryPercent = findViewById(R.id.batteryPercent);
-        device_info = findViewById(R.id.device_info);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 activate_detection.setVisibility(View.VISIBLE);
-                device_info.setVisibility(View.VISIBLE);
+                //showDeviceInfos();
+            }
+        });
+    }
+
+    public void setIndigator(final Integer res){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                lightIndigator.setImageResource(res);
             }
         });
     }
@@ -377,7 +385,8 @@ public class mainView extends AppCompatActivity{
             @Override
             public void onSuccess(Object data) {
                 BatteryInfo info = (BatteryInfo) data;
-                setBattery(String.valueOf(info.getLevel())+"%");
+                setBattery(String.valueOf(info.getLevel()));
+                System.out.println(String.valueOf(info.getLevel()));
             }
 
             @Override
@@ -388,12 +397,12 @@ public class mainView extends AppCompatActivity{
     }
 
     private void setBattery(final String battery){
-        batteryPercent = findViewById(R.id.batteryPercent);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                batteryPercent.setText(battery);
-                postConnectionLayout.setVisibility(View.VISIBLE);
+                batteryText.setText("Battery: "+battery+"%");
+                batteryText.setVisibility(View.VISIBLE);
+
             }
         });
     }
@@ -452,26 +461,31 @@ public class mainView extends AppCompatActivity{
 
 
     private void addEntry(Float x, Float y, Float z, Double result) {
+//        x = (float) 1;
+//        y = (float) 1;
+//        z = (float) 2;
+//        System.out.println(x);
+//        System.out.println(y);
+//        System.out.println(z);
 
-        LineData data = mChart.getData();
+        try {
+            LineData data = mChart.getData();
 
-        if (data != null) {
+            if (data != null) {
 
-            ILineDataSet set = data.getDataSetByIndex(0);
-            ILineDataSet setY = data.getDataSetByIndex(1);
-            ILineDataSet setZ = data.getDataSetByIndex(1);
-            // set.addEntry(...); // can be called as well
+                ILineDataSet set = data.getDataSetByIndex(0);
+                ILineDataSet setY = data.getDataSetByIndex(0);
+                ILineDataSet setZ = data.getDataSetByIndex(0);
+                // set.addEntry(...); // can be called as well
 
-            if (set == null) {
-                set = createSet("X", Color.RED);
-                setY = createSet("Y", Color.GREEN);
-                setZ = createSet("Z", Color.BLUE);
-                data.addDataSet(set);
-                data.addDataSet(setY);
-                data.addDataSet(setZ);
-            }
-
-            try {
+                if (set == null) {
+                    set = createSet("X", Color.RED);
+                    setY = createSet("Y", Color.GREEN);
+                    setZ = createSet("Z", Color.BLUE);
+                    data.addDataSet(set);
+                    data.addDataSet(setY);
+                    data.addDataSet(setZ);
+                }
                 data.addEntry(new Entry(set.getEntryCount(), x), 0);
                 data.addEntry(new Entry(set.getEntryCount(), y), 1);
                 data.addEntry(new Entry(set.getEntryCount(), z), 2);
@@ -479,29 +493,40 @@ public class mainView extends AppCompatActivity{
                 // let the chart know it's data has changed
                 mChart.notifyDataSetChanged();
                 // limit the number of visible entries
-                mChart.setVisibleXRangeMaximum(20);
+                mChart.setVisibleXRangeMaximum(150);
                 // move to the latest entry
-                mChart.moveViewToX(data.getEntryCount());
-            }catch (Exception e){
-                System.out.println(e);
-            }
+                try {
+                    mChart.moveViewToX(data.getEntryCount());
+                }catch (Exception e){
+                    System.out.println(e);
+                }
 
+            }
+        }catch (Exception e){
+            System.out.println(e);
         }
+
+
 
     }
 
     private LineDataSet createSet(String name, Integer c) {
-
         LineDataSet set = new LineDataSet(null, name);
-        set.setAxisDependency(YAxis.AxisDependency.LEFT);
-        set.setLineWidth(3f);
-        set.setColor(c);
-        set.setHighlightEnabled(false);
-        set.setDrawValues(true);
-        set.setDrawCircles(false);
-        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-        set.setCubicIntensity(0.2f);
+        try {
+            set.setAxisDependency(YAxis.AxisDependency.LEFT);
+            set.setLineWidth(1f);
+            set.setColor(c);
+            set.setHighlightEnabled(false);
+            set.setDrawValues(true);
+            set.setDrawCircles(false);
+            set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+            set.setCubicIntensity(0.2f);
+        }catch (Exception e){
+            System.out.println(e);
+        }
+
         return set;
+
     }
     public void showToastMethod() {
         System.out.println("called");
@@ -529,7 +554,7 @@ public class mainView extends AppCompatActivity{
         double xAxis=0.0, yAxis=0.0, zAxis=0.0;
         double scale_factor = 250.0;
         //double gravity = 9.81;
-        double gravity = 10;
+        double gravity = 1;
 
         if ((value.length - 2) % 6 != 0) {
             System.out.println("wrong value");
@@ -569,18 +594,19 @@ public class mainView extends AppCompatActivity{
                 }
                 zAxis = (zAxis / scale_factor) * gravity;
 
-                //System.out.println("x-axis:"+ String.format("%.03f",xAxis-2)+" y-axis:"+String.format("%.03f",yAxis-1)+" z-axis:"+String.format("%.03f",zAxis-1)+";");
-                double result = Math.sqrt(Math.pow(Math.abs(xAxis-1), 2) + Math.pow(Math.abs(yAxis-1), 2) + Math.pow(Math.abs(zAxis-1), 2));
+                double result = Math.sqrt(Math.pow(Math.abs(xAxis), 2) + Math.pow(Math.abs(yAxis), 2) + Math.pow(Math.abs(zAxis), 2));
                 //System.out.println(result);
-                float x = (float) xAxis-1;
-                float y = (float) yAxis-1;
-                float z = (float) zAxis-1;
+                float x = (float) xAxis;
+                float y = (float) yAxis;
+                float z = (float) zAxis;
                 x = ensureRange(x);
                 y = ensureRange(y);
                 z = ensureRange(z);
                 if(plotData && showPlot){
+                    //System.out.println("x-axis:"+ String.format("%.03f",xAxis-2)+" y-axis:"+String.format("%.03f",yAxis-1)+" z-axis:"+String.format("%.03f",zAxis-1)+";");
+                   // System.out.println(result);
                     addEntry(x, y, z, result);
-                    plotData = false;
+                    //plotData = false;
                 }
                 //System.out.println(result);
                 if(result > detect_threshold && show_dialog){
@@ -597,6 +623,7 @@ public class mainView extends AppCompatActivity{
                                         }
                                     })
                                     .create();
+                            dialog.setCanceledOnTouchOutside(false);
                             dialog.setOnShowListener(new DialogInterface.OnShowListener() {
                                 private static final int AUTO_DISMISS_MILLIS = 5000;
                                 @Override
@@ -626,6 +653,9 @@ public class mainView extends AppCompatActivity{
                                                         for (byte i: data){
                                                             System.out.println("heart data "+ i);
                                                             setTextContect(heartRate, "Heart rate: "+String.valueOf(i));
+                                                            if(i > 0){
+                                                                sendEmail("Heart rate: "+String.valueOf(i));
+                                                            }
                                                         }
                                                     }
                                                 });
@@ -649,8 +679,16 @@ public class mainView extends AppCompatActivity{
         return value;
     }
 
-    public static void setHeartRate(){
-
+    protected void sendEmail(String body) {
+        try {
+            GMailSender sender = new GMailSender("sheydayevmursal.94@gmail.com", "m951753852");
+            sender.sendMail("Man is down!!!",
+                    body,
+                    "sheydayevmursal.94@gmail.com",
+                    "mursal.shydv@gmail.com");
+        } catch (Exception e) {
+            Log.e("SendMail", e.getMessage(), e);
+        }
     }
 
 }
