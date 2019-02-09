@@ -1,15 +1,15 @@
 package cat.uab.falldetectionapp.com.falldetection;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
@@ -24,9 +24,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -41,25 +41,16 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.jjoe64.graphview.GraphView;
-
-import org.w3c.dom.Text;
-
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import cat.uab.falldetectionapp.com.falldetection.listeners.NotifyListener;
 import cat.uab.falldetectionapp.com.falldetection.model.BatteryInfo;
-import pl.droidsonroids.gif.GifImageView;
 
-public class mainView extends AppCompatActivity{
-    Button authentication_btn, DiscoverButton, activate_detection, device_info, kill_app;
-    ListView list, lvNewDevices, list_paired;
-    TextView status, batteryPercent, threshold, heartRate, batteryText;
+public class mainView extends AppCompatActivity implements SensorEventListener {
+    Button authentication_btn, DiscoverButton, activate_detection, kill_app, save_email;
+    ListView list;
+    TextView status, threshold, heartRate, batteryText, phone_acc_thr, email_indigator;
     BluetoothAdapter bluetoothAdapter;
     private DrawerLayout dl;
     private ActionBarDrawerToggle t;
@@ -68,6 +59,7 @@ public class mainView extends AppCompatActivity{
     private boolean connectionChecker = false, activate_disactivate = true;
     private static final String TAG = "MainActivity";
     public double y = 0.0;
+    public static String user_email = "";
     Switch plot;
     GraphView mScatterPlot;
     LineChart  mChart;
@@ -75,14 +67,16 @@ public class mainView extends AppCompatActivity{
     Boolean plotData = true;
     Boolean showPlot = false;
     Boolean show_dialog = true;
-    SeekBar seekBar;
+    SeekBar seekBar, phone_acc_seekbar;
     public static Double detect_threshold = 2.0;
-    String countDownValue = "10";
-    Integer timeCount = 0;
+    public static Double phone_threshold = 1.2;
+    public double phone_result = 1.2;
     ImageView lightIndigator;
-
-    private AlertDialog alertDialog;
-
+    private SensorManager sensorManager;
+    public static boolean use_phone = false;
+    EditText email_field;
+    Context context = this;
+    private sqlite_IO db;
     @Override
     protected void onDestroy() {
         Log.d(TAG, "onDestroy: called.");
@@ -94,9 +88,17 @@ public class mainView extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_view);
         final Intent intent = this.getIntent();
+        String pass = getResources().getString(R.string.pass);
+        db = new sqlite_IO(context);
+        String check = db.checkValues();
+        user_email = check;
         batteryText = findViewById(R.id.batteryText);
         mChart = findViewById(R.id.chart);
         miband = new MiBand(this, mScatterPlot);
+        email_indigator = findViewById(R.id.email_indigator);
+        System.out.println(user_email);
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
         final BluetoothDevice device = intent.getParcelableExtra("device");
         if(device != null){
             status = findViewById(R.id.status);
@@ -236,31 +238,7 @@ public class mainView extends AppCompatActivity{
                 appExit();
             }
         });
-
-        threshold = findViewById(R.id.threshold);
-        seekBar = findViewById(R.id.seekBar);
         plot = findViewById(R.id.plot);
-//        seekBar.setMax(10);
-//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-//            double progressChangedValue = 0;
-//
-//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-//                progressChangedValue = progress;
-//            }
-//
-//            public void onStartTrackingTouch(SeekBar seekBar) {
-//                // TODO Auto-generated method stub
-//            }
-//
-//            public void onStopTrackingTouch(SeekBar seekBar) {
-//                if(progressChangedValue < 2.0){
-//                    progressChangedValue = 2.0;
-//                }
-//                setTextContect(threshold, Double.toString(progressChangedValue));
-//                detect_threshold = progressChangedValue;
-//                //Toast.makeText(mainView.this, "Dete is :" + progressChangedValue, Toast.LENGTH_SHORT).show();
-//            }
-//        });
 
         plot.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -274,7 +252,8 @@ public class mainView extends AppCompatActivity{
         });
         heartRate = findViewById(R.id.heartRate);
         lightIndigator = findViewById(R.id.lightIndigator);
-
+        threshold = findViewById(R.id.threshold);
+        phone_acc_thr = findViewById(R.id.phone_acc_thr);
 
 
         mChart.getDescription().setEnabled(false);
@@ -328,6 +307,19 @@ public class mainView extends AppCompatActivity{
         startTimeThread();
 
     }
+    @Override
+    public void onAccuracyChanged(Sensor arg0, int arg1) {
+
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        double x = event.values[0]/9.81;
+        double y = event.values[1]/9.81;
+        double z = event.values[2]/9.81;
+        phone_result = Math.sqrt(Math.pow(Math.abs(x), 2) + Math.pow(Math.abs(y), 2) + Math.pow(Math.abs(z), 2));
+    }
+
     public void appExit () {
         this.finish();
         Intent intent = new Intent(Intent.ACTION_MAIN);
@@ -349,7 +341,7 @@ public class mainView extends AppCompatActivity{
             public void run() {
                 while (true){
                     try {
-                        Thread.sleep(10000);
+                        Thread.sleep(60000);
                         showDeviceInfos();
                     } catch (InterruptedException e) {
                         // TODO Auto-generated catch block
@@ -366,7 +358,6 @@ public class mainView extends AppCompatActivity{
             @Override
             public void run() {
                 activate_detection.setVisibility(View.VISIBLE);
-                //showDeviceInfos();
             }
         });
     }
@@ -407,15 +398,6 @@ public class mainView extends AppCompatActivity{
         });
     }
 
-    private void setTexts(final Button button, final String text){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                button.setText(text);
-            }
-        });
-    }
-
     private void setTextContect(final TextView t, final String text){
         runOnUiThread(new Runnable() {
             @Override
@@ -424,9 +406,6 @@ public class mainView extends AppCompatActivity{
             }
         });
     }
-
-
-
 
 
     private void setStatus(final int statustext){
@@ -448,25 +427,7 @@ public class mainView extends AppCompatActivity{
     }
 
 
-    private void handleHeartRateData(final BluetoothGattCharacteristic characteristic) {
-        byte[] data = characteristic.getValue();
-        System.out.println(characteristic.getValue());
-        System.out.println("length > " + data.length);
-        for (byte i: data){
-            System.out.println("hearth data "+ i);
-        }
-        System.out.println("heart > "+characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0).toString());
-
-    }
-
-
     private void addEntry(Float x, Float y, Float z, Double result) {
-//        x = (float) 1;
-//        y = (float) 1;
-//        z = (float) 2;
-//        System.out.println(x);
-//        System.out.println(y);
-//        System.out.println(z);
 
         try {
             LineData data = mChart.getData();
@@ -476,7 +437,6 @@ public class mainView extends AppCompatActivity{
                 ILineDataSet set = data.getDataSetByIndex(0);
                 ILineDataSet setY = data.getDataSetByIndex(0);
                 ILineDataSet setZ = data.getDataSetByIndex(0);
-                // set.addEntry(...); // can be called as well
 
                 if (set == null) {
                     set = createSet("X", Color.RED);
@@ -490,11 +450,8 @@ public class mainView extends AppCompatActivity{
                 data.addEntry(new Entry(set.getEntryCount(), y), 1);
                 data.addEntry(new Entry(set.getEntryCount(), z), 2);
                 data.notifyDataChanged();
-                // let the chart know it's data has changed
                 mChart.notifyDataSetChanged();
-                // limit the number of visible entries
                 mChart.setVisibleXRangeMaximum(150);
-                // move to the latest entry
                 try {
                     mChart.moveViewToX(data.getEntryCount());
                 }catch (Exception e){
@@ -528,27 +485,7 @@ public class mainView extends AppCompatActivity{
         return set;
 
     }
-    public void showToastMethod() {
-        System.out.println("called");
-        final AlertDialog.Builder builder = new AlertDialog.Builder(mainView.this);
-        builder.setTitle("Time");
-        builder.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int i) {
-                dialog.cancel();
-                // call function show alert dialog again
-                showToastMethod();
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        final AlertDialog alert = builder.create();
-        alert.show();
-    }
+
     private void handleSensorData(byte[] value) {
         int counter=0, step=0;
         double xAxis=0.0, yAxis=0.0, zAxis=0.0;
@@ -603,13 +540,17 @@ public class mainView extends AppCompatActivity{
                 y = ensureRange(y);
                 z = ensureRange(z);
                 if(plotData && showPlot){
-                    //System.out.println("x-axis:"+ String.format("%.03f",xAxis-2)+" y-axis:"+String.format("%.03f",yAxis-1)+" z-axis:"+String.format("%.03f",zAxis-1)+";");
-                   // System.out.println(result);
                     addEntry(x, y, z, result);
-                    //plotData = false;
                 }
-                //System.out.println(result);
-                if(result > detect_threshold && show_dialog){
+                Boolean detect_condition = result > detect_threshold && show_dialog;
+                if(use_phone){
+                    detect_condition = result > detect_threshold && phone_result > phone_threshold && show_dialog;
+                }
+                if(detect_condition){
+                    System.out.println(result);
+                    System.out.println(phone_result);
+                    Vibrator vibrator = (Vibrator) mainView.this.getSystemService(Context.VIBRATOR_SERVICE);
+                    vibrator.vibrate(2000);
                     runOnUiThread(new Runnable() {
                         public void run() {
                             AlertDialog dialog = new AlertDialog.Builder(mainView.this)
@@ -625,7 +566,7 @@ public class mainView extends AppCompatActivity{
                                     .create();
                             dialog.setCanceledOnTouchOutside(false);
                             dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                                private static final int AUTO_DISMISS_MILLIS = 5000;
+                                private static final int AUTO_DISMISS_MILLIS = 15000;
                                 @Override
                                 public void onShow(final DialogInterface dialog) {
                                     final Button defaultButton = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
@@ -645,8 +586,6 @@ public class mainView extends AppCompatActivity{
                                                 show_dialog = true;
                                                 dialog.dismiss();
                                                 System.out.println("alert! man is dying!!!");
-                                                Vibrator vibrator = (Vibrator) mainView.this.getSystemService(Context.VIBRATOR_SERVICE);
-                                                vibrator.vibrate(1000);
                                                 miband.heartRate(new NotifyListener() {
                                                     @Override
                                                     public void onNotify(byte[] data) {
@@ -659,6 +598,7 @@ public class mainView extends AppCompatActivity{
                                                         }
                                                     }
                                                 });
+                                                sendEmail("Heart rate: measuring...");
                                             }
                                         }
                                     }.start();
@@ -680,12 +620,13 @@ public class mainView extends AppCompatActivity{
     }
 
     protected void sendEmail(String body) {
+        String pass = getResources().getString(R.string.pass);
         try {
-            GMailSender sender = new GMailSender("sheydayevmursal.94@gmail.com", "m951753852");
+            GMailSender sender = new GMailSender("falldetectionemergency@gmail.com", pass);
             sender.sendMail("Man is down!!!",
                     body,
-                    "sheydayevmursal.94@gmail.com",
-                    "mursal.shydv@gmail.com");
+                    "falldetectionemergency@gmail.com",
+                    user_email);
         } catch (Exception e) {
             Log.e("SendMail", e.getMessage(), e);
         }

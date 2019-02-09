@@ -12,6 +12,8 @@
     <string name="disconnected">Disconnected</string>
     <string name="enableBT">Please enable bluetooth</string>
     <string name="discovering">Discovering &#8230;</string>
+    <string name="pass">falldetection1234</string>
+
 
 
 </resources>

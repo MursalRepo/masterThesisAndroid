@@ -159,11 +159,11 @@
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/chart"
                 android:layout_width="match_parent"
-                android:layout_height="202dp"
+                android:layout_height="186dp"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
                 android:layout_marginStart="0dp"
-                android:layout_marginTop="46dp" />
+                android:layout_marginTop="62dp" />
 
             <Switch
                 android:id="@+id/plot"
@@ -185,6 +185,16 @@
                 android:layout_marginTop="9dp"
                 android:text="Heart rate: "
                 android:textColor="@color/colorRed" />
+
+            <TextView
+                android:id="@+id/email_indigator"
+                android:layout_width="275dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="46dp"
+                android:layout_marginTop="39dp"
+                android:textStyle="bold|italic" />
         </RelativeLayout>
 
         <TextView
