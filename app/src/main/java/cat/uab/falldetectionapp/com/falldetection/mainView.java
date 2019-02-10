@@ -294,8 +294,8 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
         YAxis leftAxis = mChart.getAxisLeft();
         leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(false);
-        leftAxis.setAxisMaximum(8f);
-        leftAxis.setAxisMinimum(-8f);
+        leftAxis.setAxisMaximum(6f);
+        leftAxis.setAxisMinimum(-6f);
         leftAxis.setDrawGridLines(true);
 
         YAxis rightAxis = mChart.getAxisRight();
@@ -590,10 +590,11 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                                                     @Override
                                                     public void onNotify(byte[] data) {
                                                         sendEmail("Heart rate: measuring...");
+                                                        setTextContect(heartRate, "Heart rate: ...");
                                                         for (byte i: data){
                                                             System.out.println("heart data "+ i);
-                                                            setTextContect(heartRate, "Heart rate: "+String.valueOf(i));
                                                             if(i > 0){
+                                                                setTextContect(heartRate, "Heart rate: "+String.valueOf(i));
                                                                 sendEmail("Heart rate: "+String.valueOf(i));
                                                             }
                                                         }
