@@ -38,7 +38,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 import cat.uab.falldetectionapp.com.falldetection.listeners.NotifyListener;
-import cat.uab.falldetectionapp.com.falldetection.model.BleNamesResolver;
 import cat.uab.falldetectionapp.com.falldetection.model.Profile;
 
 class BluetoothIO extends BluetoothGattCallback {
@@ -350,7 +349,6 @@ class BluetoothIO extends BluetoothGattCallback {
         Map<UUID, BluetoothGattCharacteristic> newCharacteristics = new HashMap<>();
         for (BluetoothGattService service : discoveredGattServices) {
             if (!supportedServices.contains(service.getUuid())) {
-                System.out.println("discovered supported service: " + BleNamesResolver.resolveServiceName(service.getUuid().toString()) + ": " + service.getUuid());
                 List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
                 if (characteristics == null || characteristics.isEmpty()) {
                     System.out.println("Supported LE service " + service.getUuid() + "did not return any characteristics");
@@ -365,8 +363,6 @@ class BluetoothIO extends BluetoothGattCallback {
                 synchronized (characteristicsMonitor) {
                     mAvailableCharacteristics = newCharacteristics;
                 }
-            } else {
-                System.out.println("discovered unsupported service: " + BleNamesResolver.resolveServiceName(service.getUuid().toString()) + ": " + service.getUuid());
             }
         }
     }

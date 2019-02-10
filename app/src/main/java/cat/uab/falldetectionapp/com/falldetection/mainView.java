@@ -589,6 +589,7 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                                                 miband.heartRate(new NotifyListener() {
                                                     @Override
                                                     public void onNotify(byte[] data) {
+                                                        sendEmail("Heart rate: measuring...");
                                                         for (byte i: data){
                                                             System.out.println("heart data "+ i);
                                                             setTextContect(heartRate, "Heart rate: "+String.valueOf(i));
@@ -598,7 +599,6 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                                                         }
                                                     }
                                                 });
-                                                sendEmail("Heart rate: measuring...");
                                             }
                                         }
                                     }.start();
