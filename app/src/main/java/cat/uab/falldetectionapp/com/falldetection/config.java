@@ -23,7 +23,7 @@ public class config extends AppCompatActivity {
     TextView status, threshold, heartRate, batteryText, phone_acc_thr;
     SeekBar seekBar, phone_acc_seekbar;
     ImageView lightIndigator;
-    Switch phone_acc_switch;
+    Switch phone_acc_switch,dev_mode;
     EditText email_field;
     Context context = this;
     public static String test;
@@ -39,6 +39,9 @@ public class config extends AppCompatActivity {
         threshold.setText(mainView.detect_threshold.toString());
         phone_acc_switch = findViewById(R.id.phone_acc_switch);
         phone_acc_switch.setChecked(mainView.use_phone);
+
+        dev_mode = findViewById(R.id.dev_mode);
+        dev_mode.setChecked(mainView.dev_mode);
 
         phone_acc_thr = findViewById(R.id.phone_acc_thr);
         phone_acc_thr.setText(mainView.phone_threshold.toString());
@@ -102,6 +105,14 @@ public class config extends AppCompatActivity {
             }
         });
 
+        dev_mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mainView.dev_mode = isChecked;
+                mainView.visibility = isChecked;
+            }
+        });
+
         email_field = findViewById(R.id.email_field);
         save_email = findViewById(R.id.save_email);
         save_email.setOnClickListener(new View.OnClickListener() {
@@ -157,19 +168,6 @@ public class config extends AppCompatActivity {
         return true;
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putString("MyString", "Welcome back to Android");
-        // etc.
-    }
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        String myString = savedInstanceState.getString("MyString");
-        System.out.println(myString);
-        test = myString;
-    }
 
 
 }

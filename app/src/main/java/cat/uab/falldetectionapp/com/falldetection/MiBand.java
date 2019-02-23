@@ -27,7 +27,6 @@ public class MiBand {
 
     public static void startScan(ScanCallback callback) {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        System.out.println(adapter);
         if (null == adapter) {
             System.out.println("BluetoothAdapter is null");
             return;
@@ -94,12 +93,10 @@ public class MiBand {
 
 
     public void getBatteryInfo(final ActionCallback callback) {
-        System.out.println("battery info");
         ActionCallback ioCallback = new ActionCallback() {
             @Override
             public void onSuccess(Object data) {
                 BluetoothGattCharacteristic characteristic = (BluetoothGattCharacteristic) data;
-                System.out.println("getBatteryInfo result " + Arrays.toString(characteristic.getValue()));
                 if (characteristic.getValue().length == 20) {
                     BatteryInfo info = BatteryInfo.fromByteData(characteristic.getValue());
                     callback.onSuccess(info);
@@ -118,7 +115,6 @@ public class MiBand {
         this.io.readCharacteristic(Profile.UUID_CHARACTERISTIC_6_BATTERY_INFO, ioCallback);
     }
     public void authorizeMiBand(final ActionCallback callback) {
-        System.out.println("authorizing...");
         ActionCallback ioCallback = new ActionCallback() {
             @Override
             public void onSuccess(Object data) {
@@ -134,11 +130,9 @@ public class MiBand {
         this.io.authorizasion(Profile.CUSTOM_SERVICE_AUTH_DESCRIPTOR, ioCallback);
     }
     public void getDeviceInfo(final ActionCallback callback){
-        System.out.println("getting device info");
         ActionCallback ioCallback = new ActionCallback() {
             @Override
             public void onSuccess(Object data) {
-                System.out.println("got device info");
                 BluetoothGattCharacteristic characteristic = (BluetoothGattCharacteristic) data;
                 System.out.println("device data " + Arrays.toString(characteristic.getValue()));
                 String value = characteristic.getStringValue(0);
@@ -154,8 +148,8 @@ public class MiBand {
         this.io.deviceInfo(Profile.UUID_SERVICE_HEARTRATE, ioCallback);
     }
 
-    public void heartRate(final NotifyListener listener){
-        this.io.startScanHeartRate(new NotifyListener() {
+    public void heartRate(int type, final NotifyListener listener){
+        this.io.startScanHeartRate(type, new NotifyListener() {
             @Override
             public void onNotify(byte[] data) {
                 listener.onNotify(data);

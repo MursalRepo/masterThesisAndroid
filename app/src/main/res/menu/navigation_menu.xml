@@ -10,4 +10,7 @@
     <item android:id="@+id/account"
         android:icon="@drawable/ic_portrait_black_24dp"
         android:title="Info"/>
+    <item android:id="@+id/shut_down"
+        android:icon="@drawable/ic_portrait_black_24dp"
+        android:title="shut down"/>
 </menu>

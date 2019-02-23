@@ -55,6 +55,8 @@ class BluetoothIO extends BluetoothGattCallback {
     private static final byte[] startSensorRead2 = new byte[]{0x02};
     private static final byte[] stopSensorRead = new byte[]{0x03};
     private static final byte[] startHeartMeasurementContinuous = new byte[]{0x15, Profile.COMMAND_SET__HR_CONTINUOUS, 1};
+    private static final byte[] startHeartMeasurementManual = new byte[]{0x15, Profile.COMMAND_SET_HR_MANUAL, 1};
+
     private static Timer timer;
     private Context context;
     private byte authFlags = Profile.AUTH_BYTE;
@@ -68,7 +70,9 @@ class BluetoothIO extends BluetoothGattCallback {
     }
 
     public void disconnect(){
-        gatt.close();
+        if(gatt != null){
+            gatt.close();
+        }
     }
 
     public void setDisconnectedListener(NotifyListener disconnectedListener) {
@@ -391,34 +395,40 @@ class BluetoothIO extends BluetoothGattCallback {
         System.out.println("Notified.....");
     }
 
-    void startScanHeartRate(NotifyListener listener) {
-        BluetoothGattService myGatService = gatt.getService(Profile.UUID_SERVICE_HEARTRATE);
-        if (myGatService != null) {
-            BluetoothGattCharacteristic heartRateChar = myGatService.getCharacteristic(Profile.UUID_NOTIFICATION_HEARTRATE);
-            gatt.setCharacteristicNotification(heartRateChar, true);
-            BluetoothGattDescriptor descriptor = heartRateChar.getDescriptor(Profile.CUSTOM_SERVICE_AUTH_DESCRIPTOR);
-            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-            gatt.writeDescriptor(descriptor);
-        }else{
-            System.out.println("service is null");
-        }
-        try{
-            Thread.sleep(500);
-        }catch (InterruptedException e){
+    void startScanHeartRate(int type, NotifyListener listener) {
+        if(gatt != null){
+            BluetoothGattService myGatService = gatt.getService(Profile.UUID_SERVICE_HEARTRATE);
+            if (myGatService != null) {
+                BluetoothGattCharacteristic heartRateChar = myGatService.getCharacteristic(Profile.UUID_NOTIFICATION_HEARTRATE);
+                gatt.setCharacteristicNotification(heartRateChar, true);
+                BluetoothGattDescriptor descriptor = heartRateChar.getDescriptor(Profile.CUSTOM_SERVICE_AUTH_DESCRIPTOR);
+                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                gatt.writeDescriptor(descriptor);
+            }else{
+                System.out.println("service is null");
+            }
+            try{
+                Thread.sleep(500);
+            }catch (InterruptedException e){
 
+            }
+            BluetoothGattCharacteristic bchar = gatt.getService(Profile.UUID_SERVICE_HEARTRATE)
+                    .getCharacteristic(Profile.UUID_CHAR_HEARTRATE);
+            if(type == 0){
+                bchar.setValue(startHeartMeasurementContinuous);
+            }else{
+                bchar.setValue(startHeartMeasurementManual);
+            }
+            gatt.writeCharacteristic(bchar);
+            this.notifyListeners.put(Profile.UUID_NOTIFICATION_HEARTRATE, listener);
+        }else{
+            System.out.println("gatt is null");
         }
-        BluetoothGattCharacteristic bchar = gatt.getService(Profile.UUID_SERVICE_HEARTRATE)
-                .getCharacteristic(Profile.UUID_CHAR_HEARTRATE);
-        bchar.setValue(startHeartMeasurementContinuous);
-        gatt.writeCharacteristic(bchar);
-        this.notifyListeners.put(Profile.UUID_NOTIFICATION_HEARTRATE, listener);
-        //private static final byte[] startHeartMeasurementContinuous = new byte[]{0x15, MiBandService.COMMAND_SET__HR_CONTINUOUS, 1};
 
     }
 
     @Override
     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-        System.out.println("state changed");
         super.onConnectionStateChange(gatt, status, newState);
 
         if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -433,7 +443,6 @@ class BluetoothIO extends BluetoothGattCallback {
 
     @Override
     public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-        System.out.println("Characteristict read");
         super.onCharacteristicRead(gatt, characteristic, status);
         if (BluetoothGatt.GATT_SUCCESS == status) {
             this.onSuccess(characteristic);
@@ -472,7 +481,6 @@ class BluetoothIO extends BluetoothGattCallback {
         } else {
             this.onFail(status, "onServicesDiscovered fail");
         }
-        System.out.println("onservicesDiscovered");
     }
 
     @Override
@@ -560,71 +568,4 @@ class BluetoothIO extends BluetoothGattCallback {
         return new byte[]{0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45};
     }
 
-    private void handleSensorData(byte[] value) {
-        int counter=0, step=0;
-        double xAxis=0.0, yAxis=0.0, zAxis=0.0;
-        double scale_factor = 250.0;
-        //double gravity = 9.81;
-        double gravity = 10;
-
-        if ((value.length - 2) % 6 != 0) {
-            System.out.println("wrong value");
-        }
-        else {
-            counter = (value[0] & 0xff) | ((value[1] & 0xff) << 8);
-            for (int idx = 0; idx < ((value.length - 2) / 6); idx++) {
-                step = idx * 6;
-                // Analyse X-axis data
-                int xAxisRawValue = (value[step+2] & 0xff) | ((value[step+3] & 0xff) << 8);
-                int xAxisSign = (value[step+3] & 0x30) >> 4;
-                if (xAxisSign == 0) {
-                    xAxis = xAxisRawValue & 0xfff;
-                }
-                else {
-                    xAxis = (xAxisRawValue & 0xfff) - 4097;
-                }
-                xAxis = (xAxis*1.0 / scale_factor) * gravity;
-                // Analyse Y-axis data
-                int yAxisRawValue = (value[step+4] & 0xff) | ((value[step+5] & 0xff) << 8);
-                int yAxisSign = (value[step+5] & 0x30) >> 4;
-                if (yAxisSign == 0) {
-                    yAxis = yAxisRawValue & 0xfff;
-                }
-                else {
-                    yAxis = (yAxisRawValue & 0xfff) - 4097;
-                }
-                yAxis = (yAxis / scale_factor) * gravity;
-                // Analyse Z-axis data
-                int zAxisRawValue = (value[step+6] & 0xff) | ((value[step+7] & 0xff) << 8);
-                int zAxisSign = (value[step+7] & 0x30) >> 4;
-                if (zAxisSign == 0) {
-                    zAxis = zAxisRawValue & 0xfff;
-                }
-                else {
-                    zAxis = (zAxisRawValue & 0xfff) - 4097;
-                }
-                zAxis = (zAxis / scale_factor) * gravity;
-                //mainView.plot_mi_band(xAxis, yAxis, zAxis);
-//                realtime_diagram rd = new realtime_diagram();
-//                rd.mi_band_plot(xAxis-1, yAxis-1, zAxis-1);
-                System.out.println("x-axis:"+ String.format("%.03f",xAxis-2)+" y-axis:"+String.format("%.03f",yAxis-1)+" z-axis:"+String.format("%.03f",zAxis-1)+";");
-                double result = Math.sqrt(Math.pow(Math.abs(xAxis-1), 2) + Math.pow(Math.abs(yAxis-1), 2) + Math.pow(Math.abs(zAxis-1), 2));
-                //System.out.println(String.format("%.03f",result));
-                if(result > 20){
-                    //mainView.showToastMethod();
-                }
-            }
-        }
-    }
-
-    public void handleHeartRate(final BluetoothGattCharacteristic characteristic){
-        byte[] data = characteristic.getValue();
-        for (byte i: data){
-            System.out.println("hearth data "+ i);
-        }
-    }
-
-    public static void showToastMethod(Context context) {
-        Toast.makeText(context, "mymessage ", Toast.LENGTH_SHORT).show();
-    }
 }

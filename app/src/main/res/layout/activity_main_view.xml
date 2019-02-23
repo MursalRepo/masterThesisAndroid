@@ -140,30 +140,24 @@
             android:src="@drawable/circlegreen" />
 
         <RelativeLayout
+            android:id="@+id/dev_mode_layout"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
+            android:layout_height="214dp"
             android:layout_alignParentStart="true"
-            android:layout_alignParentBottom="true">
-
-
-            <Button
-                android:id="@+id/closeId"
-                android:layout_width="137dp"
-                android:layout_height="35dp"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginStart="247dp"
-                android:layout_marginTop="261dp"
-                android:text="shut down" />
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="0dp"
+            android:layout_marginBottom="44dp"
+            android:visibility="gone"
+            >
 
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/chart"
                 android:layout_width="match_parent"
-                android:layout_height="186dp"
+                android:layout_height="180dp"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
                 android:layout_marginStart="0dp"
-                android:layout_marginTop="62dp" />
+                android:layout_marginTop="4dp" />
 
             <Switch
                 android:id="@+id/plot"
@@ -172,29 +166,29 @@
                 android:layout_alignParentStart="true"
                 android:layout_alignParentBottom="true"
                 android:layout_marginStart="11dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="3dp"
                 android:text="Plot  " />
 
             <TextView
                 android:id="@+id/heartRate"
                 android:layout_width="139dp"
                 android:layout_height="wrap_content"
-                android:layout_alignTop="@+id/closeId"
-                android:layout_alignEnd="@+id/textView4"
-                android:layout_marginStart="100dp"
-                android:layout_marginTop="9dp"
+                android:layout_alignBottom="@+id/plot"
+                android:layout_marginStart="11dp"
+                android:layout_marginBottom="5dp"
+                android:layout_toEndOf="@+id/plot"
                 android:text="Heart rate: "
                 android:textColor="@color/colorRed" />
 
-            <TextView
-                android:id="@+id/email_indigator"
-                android:layout_width="275dp"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginStart="46dp"
-                android:layout_marginTop="39dp"
-                android:textStyle="bold|italic" />
+            <!--<TextView-->
+            <!--android:id="@+id/email_indigator"-->
+            <!--android:layout_width="275dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignParentStart="true"-->
+            <!--android:layout_alignParentTop="true"-->
+            <!--android:layout_marginStart="46dp"-->
+            <!--android:layout_marginTop="39dp"-->
+            <!--android:textStyle="bold|italic" />-->
         </RelativeLayout>
 
         <TextView

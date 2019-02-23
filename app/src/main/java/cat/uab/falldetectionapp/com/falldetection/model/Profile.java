@@ -11,6 +11,8 @@ public class Profile {
 
     public static final UUID UUID_NOTIFICATION_HEARTRATE = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb");
     public static final byte COMMAND_SET__HR_CONTINUOUS = 0x1;
+    public static final byte COMMAND_SET_HR_MANUAL = 0x2;
+
 
     public static final UUID UUID_CHARACTERISTIC_8_USER_SETTINGS = UUID.fromString("00000008-0000-3512-2118-0009af100700");
 

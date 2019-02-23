@@ -22,11 +22,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -48,9 +50,11 @@ import cat.uab.falldetectionapp.com.falldetection.listeners.NotifyListener;
 import cat.uab.falldetectionapp.com.falldetection.model.BatteryInfo;
 
 public class mainView extends AppCompatActivity implements SensorEventListener {
-    Button authentication_btn, DiscoverButton, activate_detection, kill_app, save_email;
+    Button authentication_btn, DiscoverButton, activate_detection, save_email;
     ListView list;
-    TextView status, threshold, heartRate, batteryText, phone_acc_thr, email_indigator;
+    private int custom_heart_rate = 60;
+    RelativeLayout dev_mode_layout;
+    TextView status, threshold, heartRate, batteryText, phone_acc_thr;
     BluetoothAdapter bluetoothAdapter;
     private DrawerLayout dl;
     private ActionBarDrawerToggle t;
@@ -74,6 +78,7 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
     ImageView lightIndigator;
     private SensorManager sensorManager;
     public static boolean use_phone = false;
+    public static boolean dev_mode = false, visibility = true;
     EditText email_field;
     Context context = this;
     private sqlite_IO db;
@@ -95,8 +100,6 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
         batteryText = findViewById(R.id.batteryText);
         mChart = findViewById(R.id.chart);
         miband = new MiBand(this, mScatterPlot);
-        email_indigator = findViewById(R.id.email_indigator);
-        System.out.println(user_email);
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
         final BluetoothDevice device = intent.getParcelableExtra("device");
@@ -129,6 +132,7 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                 }
             });
         }
+        dev_mode_layout = findViewById(R.id.dev_mode_layout);
 
         dl = findViewById(R.id.activity_main);
         t = new ActionBarDrawerToggle(this, dl,R.string.Open, R.string.Close);
@@ -156,6 +160,10 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                         break;
                     case R.id.account:
                         Toast.makeText(mainView.this, "Master thesis UAB Mursal Sheydayev",Toast.LENGTH_LONG).show();
+                        break;
+                    case R.id.shut_down:
+                        miband.disconnect();
+                        appExit();
                         break;
                     default:
                         return true;
@@ -211,6 +219,14 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                     miband.sensorData(activate_disactivate, new NotifyListener() {
                         @Override
                         public void onNotify(byte[] data) {
+                            if(dev_mode && visibility){
+                                makeLayoutVisible(dev_mode_layout, View.VISIBLE);
+                                visibility = false;
+                            }
+                            if(!dev_mode && !visibility){
+                                makeLayoutVisible(dev_mode_layout, View.GONE);
+                                visibility = true;
+                            }
                             handleSensorData(data);
                         }
                     });
@@ -230,14 +246,6 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
             }
         });
 
-        kill_app = findViewById(R.id.closeId);
-        kill_app.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                miband.disconnect();
-                appExit();
-            }
-        });
         plot = findViewById(R.id.plot);
 
         plot.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -305,6 +313,7 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
         mChart.getXAxis().setDrawGridLines(false);
         mChart.setDrawBorders(false);
         startTimeThread();
+        startHeartRateThread();
 
     }
     @Override
@@ -352,12 +361,41 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
         });
         thread.start();
     }
+    public void startHeartRateThread(){
+        if (threadCount != null){
+            threadCount.interrupt();
+        }
+        threadCount = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    try {
+                        saveHeartRate();
+                        Thread.sleep(300000);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        threadCount.start();
+    }
 
     public void makePanelVisible(){
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 activate_detection.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    public void makeLayoutVisible(final RelativeLayout l, final int val){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                l.setVisibility(val);
             }
         });
     }
@@ -383,6 +421,22 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
             @Override
             public void onFail(int errorCode, String msg) {
                 System.out.println("getBatteryInfo fail");
+            }
+        });
+
+    }
+
+    public void saveHeartRate(){
+        miband.heartRate(1, new NotifyListener() {
+            @Override
+            public void onNotify(byte[] data) {
+                for (byte i: data){
+                    System.out.println("heart data "+ i);
+                    if(i > 0){
+                        setTextContect(heartRate, "Heart rate: "+String.valueOf(i));
+                        custom_heart_rate = i;
+                    }
+                }
             }
         });
     }
@@ -532,14 +586,13 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                 zAxis = (zAxis / scale_factor) * gravity;
 
                 double result = Math.sqrt(Math.pow(Math.abs(xAxis), 2) + Math.pow(Math.abs(yAxis), 2) + Math.pow(Math.abs(zAxis), 2));
-                //System.out.println(result);
                 float x = (float) xAxis;
                 float y = (float) yAxis;
                 float z = (float) zAxis;
                 x = ensureRange(x);
                 y = ensureRange(y);
                 z = ensureRange(z);
-                if(plotData && showPlot){
+                if(plotData && showPlot && dev_mode){
                     addEntry(x, y, z, result);
                 }
                 Boolean detect_condition = result > detect_threshold && show_dialog;
@@ -547,8 +600,6 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                     detect_condition = result > detect_threshold && phone_result > phone_threshold && show_dialog;
                 }
                 if(detect_condition){
-                    System.out.println(result);
-                    System.out.println(phone_result);
                     Vibrator vibrator = (Vibrator) mainView.this.getSystemService(Context.VIBRATOR_SERVICE);
                     vibrator.vibrate(2000);
                     runOnUiThread(new Runnable() {
@@ -565,6 +616,8 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                                     })
                                     .create();
                             dialog.setCanceledOnTouchOutside(false);
+                            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                            dialog.setCancelable(false);
                             dialog.setOnShowListener(new DialogInterface.OnShowListener() {
                                 private static final int AUTO_DISMISS_MILLIS = 15000;
                                 @Override
@@ -585,8 +638,7 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                                             if (((AlertDialog) dialog).isShowing()) {
                                                 show_dialog = true;
                                                 dialog.dismiss();
-                                                System.out.println("alert! man is dying!!!");
-                                                miband.heartRate(new NotifyListener() {
+                                                miband.heartRate(0, new NotifyListener() {
                                                     @Override
                                                     public void onNotify(byte[] data) {
                                                         sendEmail("Heart rate: measuring...");
@@ -594,8 +646,13 @@ public class mainView extends AppCompatActivity implements SensorEventListener {
                                                         for (byte i: data){
                                                             System.out.println("heart data "+ i);
                                                             if(i > 0){
+                                                                int diff = ((i * 100)/custom_heart_rate - 100);
+                                                                if(diff > 0){
+                                                                    sendEmail("Heart rate is "+diff+"% higher than normal: "+String.valueOf(i));
+                                                                }else{
+                                                                    sendEmail("Heart rate is "+diff+"% lower than normal: "+String.valueOf(i));
+                                                                }
                                                                 setTextContect(heartRate, "Heart rate: "+String.valueOf(i));
-                                                                sendEmail("Heart rate: "+String.valueOf(i));
                                                             }
                                                         }
                                                     }

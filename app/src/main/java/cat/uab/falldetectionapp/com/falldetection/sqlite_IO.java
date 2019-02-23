@@ -24,7 +24,6 @@ public class sqlite_IO extends SQLiteOpenHelper{
         public void onCreate(SQLiteDatabase db) {
             String CREATE_QUERY ="CREATE TABLE emails" + "(id " + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, email_name" + " TEXT);";
             db.execSQL(CREATE_QUERY);
-            System.out.println("tables created");
         }
 
         @Override
@@ -41,7 +40,6 @@ public class sqlite_IO extends SQLiteOpenHelper{
             values.put(KEY_EMAIL, email.getEmail());
             db.insert(TABLE_NAME,null, values);
             db.close();
-            System.out.println("added");
         }
 
         public int update_email(email_const email) {
